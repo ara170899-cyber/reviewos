@@ -1529,7 +1529,7 @@ function renderChatView(){
     </div>
     <div style="padding:12px 18px;border-top:1px solid var(--line);background:var(--panel);flex-shrink:0">
       <div id="chat-warn" style="margin-bottom:8px">${c.reply_window_expired?`<div style="font-size:12px;color:#ffd2cf;background:rgba(255,69,58,.10);border-left:3px solid var(--red);padding:8px 12px;border-radius:8px;line-height:1.5"><b>🕒 Окно ответа истекло.</b> Последнее сообщение покупателя ${c.last_buyer_hours_ago}ч назад. Ozon принимает ответы только в первые 48ч — ответьте в кабинете Ozon.</div>`:""}${c.internal_note?`<div style="font-size:11px;color:var(--orange);background:var(--orange-soft);border-left:3px solid var(--orange);padding:8px 12px;border-radius:8px;margin-top:8px"><b>📌 Заметка от AI:</b> ${esc(c.internal_note)}</div>`:""}</div>
-      <textarea id="chat-draft" class="rs" placeholder="Ваш ответ покупателю. Нажми «🤖 AI ответ» чтобы Claude сгенерировал черновик с учётом тональности из Settings." style="min-height:74px">${esc(c.ai_draft||"")}</textarea>
+      <textarea id="chat-draft" class="rs" placeholder="Ваш ответ покупателю. Нажми «🤖 AI ответ» чтобы AI сгенерировал черновик с учётом тональности из Settings." style="min-height:74px">${esc(c.ai_draft||"")}</textarea>
       <div class="rs-row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center">
         <button class="rs-btn ghost" onclick="chatActionGen(event)" title="Сгенерировать ответ через AI с учётом контекста диалога">🤖 AI ответ</button>
         <button class="rs-btn ghost" onclick="chatActionSave(event)" title="Сохранить черновик (без отправки в Ozon)">💾 Сохранить</button>
