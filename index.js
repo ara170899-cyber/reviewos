@@ -990,34 +990,8 @@ async function fetchWbSellerQuestions(token, { isAnswered = false, take = 100, s
   return { items: arr.map(normalizeWbSellerQuestion), total: Number(data?.data?.countUnanswered || data?.data?.countArchive || arr.length) };
 }
 
-// Менее агрессивная пагинация (WB наказывает быстрые запросы — баны до 10 минут)
-async function fetchWbSellerFeedbacksAll(token, { isAnswered, maxItems = 500, pageSize = 100, pauseMs = 2500 } = {}) {
-  const all = [];
-  let skip = 0;
-  while (skip < maxItems) {
-    const { items } = await fetchWbSellerFeedbacks(token, { isAnswered, take: Math.min(pageSize, maxItems - skip), skip });
-    if (!items.length) break;
-    all.push(...items);
-    if (items.length < pageSize) break;
-    skip += items.length;
-    await new Promise((r) => setTimeout(r, pauseMs));
-  }
-  return all;
-}
-
-async function fetchWbSellerQuestionsAll(token, { isAnswered, maxItems = 500, pageSize = 100, pauseMs = 2500 } = {}) {
-  const all = [];
-  let skip = 0;
-  while (skip < maxItems) {
-    const { items } = await fetchWbSellerQuestions(token, { isAnswered, take: Math.min(pageSize, maxItems - skip), skip });
-    if (!items.length) break;
-    all.push(...items);
-    if (items.length < pageSize) break;
-    skip += items.length;
-    await new Promise((r) => setTimeout(r, pauseMs));
-  }
-  return all;
-}
+// (старая пагинация удалена — слишком агрессивная, WB банит за серии запросов.
+//  Sync теперь делает ОДИН запрос с take=200 на тип, см. syncWbSellerFeedbacks/Questions)
 
 async function postWbSellerFeedbackAnswer(token, feedbackId, text) {
   return wbSellerRequest(token, "POST", "/api/v1/feedbacks/answer", {
@@ -1040,10 +1014,16 @@ function getUserChatsStore(uid) { return getUserData(uid, "chats", { index: [], 
 function setUserChatsStore(uid, store) { return setUserData(uid, "chats", store); }
 
 async function syncWbSellerFeedbacks(uid, token, { includeAnswered = false } = {}) {
-  const unanswered = await fetchWbSellerFeedbacksAll(token, { isAnswered: false, maxItems: 1000 });
-  // Пауза между запросами разных типов
-  if (includeAnswered) await new Promise((r) => setTimeout(r, 1500));
-  const answered = includeAnswered ? await fetchWbSellerFeedbacksAll(token, { isAnswered: true, maxItems: 1000 }) : [];
+  // ВАЖНО: WB агрессивно банит за серии запросов. Делаем ОДИН запрос с take=200.
+  // У большинства продавцов <200 неотвеченных — всё помещается. Если больше — пусть юзер
+  // делает sync второй раз позже.
+  const { items: unanswered } = await fetchWbSellerFeedbacks(token, { isAnswered: false, take: 200, skip: 0 });
+  let answered = [];
+  if (includeAnswered) {
+    await new Promise((r) => setTimeout(r, 4000)); // 4 сек пауза — выдерживаем 1 req/sec с запасом
+    const res = await fetchWbSellerFeedbacks(token, { isAnswered: true, take: 200, skip: 0 });
+    answered = res.items;
+  }
   const fresh = [...unanswered, ...answered];
   const existing = getUserWbFeedbacksStore(uid);
   const byId = new Map(existing.map((x) => [x.review_id, x]));
@@ -1067,9 +1047,13 @@ async function syncWbSellerFeedbacks(uid, token, { includeAnswered = false } = {
 }
 
 async function syncWbSellerQuestions(uid, token, { includeAnswered = false } = {}) {
-  const unanswered = await fetchWbSellerQuestionsAll(token, { isAnswered: false, maxItems: 1000 });
-  if (includeAnswered) await new Promise((r) => setTimeout(r, 1500));
-  const answered = includeAnswered ? await fetchWbSellerQuestionsAll(token, { isAnswered: true, maxItems: 1000 }) : [];
+  const { items: unanswered } = await fetchWbSellerQuestions(token, { isAnswered: false, take: 200, skip: 0 });
+  let answered = [];
+  if (includeAnswered) {
+    await new Promise((r) => setTimeout(r, 4000));
+    const res = await fetchWbSellerQuestions(token, { isAnswered: true, take: 200, skip: 0 });
+    answered = res.items;
+  }
   const fresh = [...unanswered, ...answered];
   const existing = getUserWbQuestionsStore(uid);
   const byId = new Map(existing.map((x) => [x.question_id, x]));
