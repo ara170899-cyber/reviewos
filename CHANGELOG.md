@@ -2,6 +2,22 @@
 
 All notable changes to ReviewOS are documented in this file.
 
+## [2.2.0] — 2026-05-22
+
+### Added
+- **Onboarding banner** на главной — показывает 3-шаговый чек-лист настройки, если у пользователя ещё нет Ozon/WB/AI ключей.
+- **15-минутный WB warmup**: после сохранения WB-токена cycle не дёргает API в течение 15 минут — даём токену «отдохнуть» от возможных внешних лимитов. Видно в логах: `⏳ WB sync пропущен: warmup N мин`.
+- Раздел **«Известные ограничения WB API»** в README — честно объясняем накопительные баны, sandbox-режим, ~45-секундный auto-pilot delay.
+- Раздел **«Стоимость AI»** в README — табличка с прикидкой цены ответа для популярных моделей.
+
+### Changed
+- **Дифференцированный throttle** WB Seller API: `GET 10s`, `POST/PATCH 45s` между запросами на токен. Раньше всё было одинаково — POST'ы успевали схватить ban за бурст.
+- Cron-cycle снова делает WB sync + AI gen + auto-post по умолчанию (после защиты throttle/warmup это безопасно).
+
+### Fixed
+- Race condition в `ensureWbCard` при параллельных `Promise.all` — теперь read-merge-write последовательно.
+- WB ban detection: доверяем `x-ratelimit-reset` вместо blanket 15-минутного бана.
+
 ## [2.1.0] — 2026-05
 
 ### Added
