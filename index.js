@@ -908,16 +908,18 @@ async function wbSellerRequest(token, method, path, { params, body, _retry } = {
   });
   if (r.status === 401 || r.status === 403) throw new Error("WB API ключ невалиден или нет прав");
   if (r.status === 429) {
-    const headerRetry = Number(r.headers?.["retry-after"]) ||
-      Number(r.headers?.["x-ratelimit-reset"]) ||
-      Number(String(r.data?.detail || r.data?.message || "").match(/(\d+)\s*(сек|sec|s\b)/i)?.[1]) ||
-      60;
-    // ВАЖНО: WB каждый запрос во время бана продлевает его на +60 сек, и наш «честный» retry-after
-    // может приходить маленьким (60), а реальный бан — гораздо больший. Поэтому держим минимум 15 минут.
-    const MIN_BAN_SEC = 15 * 60;
-    const effective = Math.max(headerRetry, MIN_BAN_SEC);
+    // WB присылает retry-after в нескольких вариантах. Доверяем заголовку x-ratelimit-reset
+    // (это реальное время до сброса), а retry-after может быть просто «60» по умолчанию.
+    const xReset = Number(r.headers?.["x-ratelimit-reset"]) || 0;
+    const retryAfter = Number(r.headers?.["retry-after"]) || 0;
+    const msgMatch = Number(String(r.data?.detail || r.data?.message || "").match(/(\d+)\s*(сек|sec|s\b)/i)?.[1]) || 0;
+    // Максимум из явных источников (если они есть). Если все 0 — fallback 90 сек.
+    const fromWb = Math.max(xReset, retryAfter, msgMatch);
+    const effective = fromWb > 0 ? Math.min(fromWb, 30 * 60) : 90;
     wbBanSet(token, effective);
-    const err = new Error(`WB заблокировал API на ${Math.ceil(effective/60)} мин (нарушен лимит). Подождите и попробуйте снова. Каждый запрос во время бана продлевает его.`);
+    const min = Math.floor(effective / 60), sec = effective % 60;
+    const human = min > 0 ? `${min} мин${sec ? " " + sec + " сек" : ""}` : `${sec} сек`;
+    const err = new Error(`WB ограничил API на ${human}. Это бан со стороны WB по seller/session — пересоздание токена не помогает (sid тот же). Подождите.`);
     err.code = "wb_rate_limit";
     err.retryAfter = effective;
     throw err;
@@ -2940,7 +2942,10 @@ app.post("/api/settings", auth, (req, res) => {
   }
   if (wb_api_key !== undefined) {
     const normalizedKey = String(wb_api_key || "").trim();
+    // При смене WB-ключа сбрасываем persistent ban для НОВОГО токена —
+    // т.к. наш ban мог накопиться от прошлых попыток с этим же ключом, а пользователь хочет начать чисто
     if (normalizedKey) {
+      try { wbBanClear(normalizedKey); } catch {}
       users[i].wb_api_key_encrypted = encryptSecret(normalizedKey);
       users[i].wb_api_key_hint = buildSecretHint(normalizedKey);
     } else {
