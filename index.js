@@ -1917,14 +1917,14 @@ async function runUserCycle(uid) {
     }
 
     // ─── WB Seller: sync + AI-генерация + автопубликация ───
-    // ВАЖНО: WB API имеет ОЧЕНЬ строгие лимиты (~1 req/sec, ban 2-5 минут за нарушение).
-    // Автоматический cycle, который запускается по cron каждые 5 минут, легко зацикливается:
-    //   cycle → WB sync → 429 → ban → следующий cron через 5 мин → ban истёк → опять 429.
-    // Поэтому в автоматическом cycle WB sync отключён по умолчанию.
-    // Включается только если пользователь явно поставил флаг `wb_auto_sync: true` в users.json
-    // (для опытных пользователей с настроенной мониторингом). Обычный путь — ручная кнопка в UI.
+    // Полностью автоматический режим. Защищены:
+    //   1) Persistent ban tracking → если WB банит, cycle пропускает sync пока не истечёт
+    //   2) Throttle GET 10s + POST/PATCH 45s → между запросами всегда есть пауза, burst невозможен
+    //   3) Single take=200 sync → 1 GET-запрос за цикл, не пагинируем
+    //   4) auto_post:true → автоматически публикует AI-ответы (с throttle 45s между публикациями)
+    // Чтобы выключить — снять wb_api_key в Settings или поставить auto_post:false.
     res.wb = { synced: false, feedbacks_replied: 0, questions_replied: 0, feedbacks_posted: 0, questions_posted: 0, errors: 0 };
-    if (user.wb_api_key && user.wb_auto_sync === true) {
+    if (user.wb_api_key) {
       // Если WB в бане — пропускаем sync целиком, чтобы не множить ошибки
       const banLeft = wbBanRemainingSec(user.wb_api_key);
       if (banLeft > 0) {
