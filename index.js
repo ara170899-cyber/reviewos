@@ -892,6 +892,30 @@ function wbBanClear(token) {
   _saveBans(bans);
 }
 
+// Дроссель: не более 1 WB-запроса в 10 сек на токен. Запросы встают в очередь.
+const WB_THROTTLE_MS = 10 * 1000;
+const _wbLastReq = new Map();   // token-hash → last request timestamp (ms)
+const _wbQueueLocks = new Map(); // token-hash → Promise (chain)
+
+async function wbThrottle(token) {
+  const h = _wbHash(token);
+  // Цепочка промисов: каждый новый запрос ждёт предыдущий
+  const prev = _wbQueueLocks.get(h) || Promise.resolve();
+  let release;
+  const lock = new Promise((r) => { release = r; });
+  _wbQueueLocks.set(h, prev.then(() => lock));
+  await prev;
+  // Теперь мы первые в очереди. Считаем сколько ждать с последнего запроса.
+  const last = _wbLastReq.get(h) || 0;
+  const elapsed = Date.now() - last;
+  if (elapsed < WB_THROTTLE_MS) {
+    await new Promise((r) => setTimeout(r, WB_THROTTLE_MS - elapsed));
+  }
+  _wbLastReq.set(h, Date.now());
+  // Через короткое время освобождаем lock — следующий в очереди начнёт ждать свои 10 сек
+  setTimeout(release, 50);
+}
+
 async function wbSellerRequest(token, method, path, { params, body, _retry, baseUrl } = {}) {
   if (!token) throw new Error("Не настроен WB API ключ");
   // Если уже в бане — сразу ошибка, не дёргаем WB
@@ -902,6 +926,10 @@ async function wbSellerRequest(token, method, path, { params, body, _retry, base
     err.retryAfter = banLeft;
     throw err;
   }
+  // Серверный дроссель: гарантируем НЕ БОЛЕЕ 1 запроса в WB Seller каждые 10 секунд
+  // на токен — независимо от того что делает UI, cron, или параллельные tabs.
+  // Это исключает burst который вызывает накопительный rate-limit WB.
+  await wbThrottle(token);
   const url = new URL((baseUrl || WB_SELLER_BASE) + path);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
