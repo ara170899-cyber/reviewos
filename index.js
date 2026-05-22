@@ -892,13 +892,18 @@ function wbBanClear(token) {
   _saveBans(bans);
 }
 
-// Дроссель: не более 1 WB-запроса в 10 сек на токен. Запросы встают в очередь.
-const WB_THROTTLE_MS = 10 * 1000;
-const _wbLastReq = new Map();   // token-hash → last request timestamp (ms)
+// Дифференцированный дроссель WB Seller API:
+//   GET (чтение sync, probe, test) — 10 сек между запросами
+//   POST/PATCH (публикация ответа)  — 45 сек (WB банит на 10+ минут за 2 ответа за 30 сек)
+// Запросы НЕ падают, а встают в очередь и ждут.
+const WB_THROTTLE_GET_MS = 10 * 1000;
+const WB_THROTTLE_WRITE_MS = 45 * 1000;
+const _wbLastReq = new Map();    // token-hash → last request timestamp (ms)
 const _wbQueueLocks = new Map(); // token-hash → Promise (chain)
 
-async function wbThrottle(token) {
+async function wbThrottle(token, method = "GET") {
   const h = _wbHash(token);
+  const minGap = (String(method).toUpperCase() === "GET") ? WB_THROTTLE_GET_MS : WB_THROTTLE_WRITE_MS;
   // Цепочка промисов: каждый новый запрос ждёт предыдущий
   const prev = _wbQueueLocks.get(h) || Promise.resolve();
   let release;
@@ -908,12 +913,19 @@ async function wbThrottle(token) {
   // Теперь мы первые в очереди. Считаем сколько ждать с последнего запроса.
   const last = _wbLastReq.get(h) || 0;
   const elapsed = Date.now() - last;
-  if (elapsed < WB_THROTTLE_MS) {
-    await new Promise((r) => setTimeout(r, WB_THROTTLE_MS - elapsed));
+  if (elapsed < minGap) {
+    await new Promise((r) => setTimeout(r, minGap - elapsed));
   }
   _wbLastReq.set(h, Date.now());
-  // Через короткое время освобождаем lock — следующий в очереди начнёт ждать свои 10 сек
   setTimeout(release, 50);
+}
+
+function wbThrottleRemainingSec(token, method = "GET") {
+  const h = _wbHash(token);
+  const minGap = (String(method).toUpperCase() === "GET") ? WB_THROTTLE_GET_MS : WB_THROTTLE_WRITE_MS;
+  const last = _wbLastReq.get(h) || 0;
+  const elapsed = Date.now() - last;
+  return Math.max(0, Math.ceil((minGap - elapsed) / 1000));
 }
 
 async function wbSellerRequest(token, method, path, { params, body, _retry, baseUrl } = {}) {
@@ -926,10 +938,10 @@ async function wbSellerRequest(token, method, path, { params, body, _retry, base
     err.retryAfter = banLeft;
     throw err;
   }
-  // Серверный дроссель: гарантируем НЕ БОЛЕЕ 1 запроса в WB Seller каждые 10 секунд
-  // на токен — независимо от того что делает UI, cron, или параллельные tabs.
-  // Это исключает burst который вызывает накопительный rate-limit WB.
-  await wbThrottle(token);
+  // Серверный дроссель: GET 10s, POST/PATCH 45s между запросами на токен.
+  // Это исключает burst который вызывает накопительный rate-limit WB
+  // (POST /feedbacks/answer особо строгий — WB банит за 2 ответа в <30 сек).
+  await wbThrottle(token, method);
   const url = new URL((baseUrl || WB_SELLER_BASE) + path);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
@@ -2791,14 +2803,17 @@ app.post("/api/wb-seller/questions/:id/preview-ai", auth, async (req, res) => {
 
 // Текущий бан WB API (для индикатора в UI)
 app.get("/api/wb-seller/status", auth, (req, res) => {
-  const banLeft = req.user.wb_api_key ? wbBanRemainingSec(req.user.wb_api_key) : 0;
+  const key = req.user.wb_api_key;
+  const banLeft = key ? wbBanRemainingSec(key) : 0;
   const last = wbSyncCooldown.get(req.user.id) || 0;
   const cooldown = Math.max(0, Math.ceil((WB_SYNC_COOLDOWN_MS - (Date.now() - last)) / 1000));
   res.json({
     ok: true,
-    has_key: !!req.user.wb_api_key,
+    has_key: !!key,
     wb_ban_sec: banLeft,
     sync_cooldown_sec: cooldown,
+    throttle_get_sec: key ? wbThrottleRemainingSec(key, "GET") : 0,
+    throttle_write_sec: key ? wbThrottleRemainingSec(key, "POST") : 0,
   });
 });
 
