@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ReviewOS — Marketplace Operations</title>
+<link rel="stylesheet" href="/app.css?v=4">
+<script type="module" src="/motion-bits.js?v=1"></script>
+<style>
+
+:root {
+  --bg:      #09090f;
+  --s1:      rgba(255,255,255,.055);
+  --s2:      rgba(255,255,255,.08);
+  --b1:      rgba(255,255,255,.07);
+  --b2:      rgba(255,255,255,.13);
+  --t1:      #f2f2f7;
+  --t2:      rgba(242,242,247,.5);
+  --t3:      rgba(242,242,247,.28);
+  --blue:    #2997ff;
+  --green:   #30d158;
+  --red:     #ff453a;
+  --orange:  #ff9f0a;
+  --yellow:  #ffd60a;
+  --purple:  #bf5af2;
+  --teal:    #5ac8fa;
+  --r:       18px;
+  --rsm:     12px;
+  --rxs:     9px;
+  --nav-h:   60px;
+  --bot-h:   70px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+
+body {
+  font-family:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif;
+  background:var(--bg);
+  color:var(--t1);
+  font-size:14px;
+  min-height:100vh;
+  overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%,  rgba(41,151,255,.1)  0%,transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 90%,  rgba(48,209,88,.07)  0%,transparent 50%),
+    radial-gradient(ellipse 50% 60% at 85% 5%,   rgba(191,90,242,.06) 0%,transparent 50%);
+  pointer-events:none;z-index:0;
+}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* ── Topbar ── */
+.topbar {
+  position:sticky;top:0;z-index:100;
+  background:rgba(12,12,18,.96);
+  border-bottom:1px solid var(--b1);
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+}
+
+.brand {
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.brand-icon {
+  width:32px;height:32px;
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:linear-gradient(145deg,#091120,#1557d6 58%,#4fd4ff 100%);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 8px 22px rgba(41,151,255,.26), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.brand-icon::before{
+  content:'';
+  position:absolute;inset:1px;
+  border-radius:8px;
+  background:
+    radial-gradient(circle at 28% 24%,rgba(255,255,255,.22),transparent 34%),
+    linear-gradient(160deg,rgba(255,255,255,.1),transparent 55%);
+  z-index:0;
+}
+.brand-icon::after{
+  content:'';
+  position:absolute;
+  width:18px;height:18px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);
+  top:6px;left:7px;
+  z-index:1;
+}
+.brand-core{
+  position:relative;z-index:2;
+  width:16px;height:16px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(8,11,22,.42);
+  border:1px solid rgba(255,255,255,.18);
+  color:#fff;
+  font-size:8px;font-weight:800;letter-spacing:.08em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.brand-dot{
+  position:absolute;z-index:2;
+  width:5px;height:5px;border-radius:50%;
+  box-shadow:0 0 10px currentColor;
+}
+.brand-dot-a{top:6px;right:6px;background:#7ee7ff;color:#7ee7ff;}
+.brand-dot-b{left:6px;bottom:7px;background:#30d158;color:#30d158;}
+.brand-dot-c{right:8px;bottom:6px;background:#bf5af2;color:#bf5af2;}
+.brand-beam{
+  position:absolute;z-index:1;
+  width:16px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+  transform:rotate(-30deg);
+  right:4px;top:14px;
+  opacity:.8;
+}
+.brand-name {
+  font-size:16px;font-weight:800;letter-spacing:-.4px;
+  background:linear-gradient(135deg,#fff,rgba(255,255,255,.7));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.topbar-center {
+  display:flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--b1);
+  border-radius:12px;
+  padding:4px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  max-width:600px;
+  -webkit-overflow-scrolling:touch;
+}
+.topbar-center::-webkit-scrollbar{display:none}
+
+.tab-btn {
+  cursor:pointer;
+  padding:6px 14px;
+  border-radius:9px;
+  font-size:13px;font-weight:600;
+  border:none;background:transparent;
+  color:var(--t3);font-family:inherit;
+  transition:background-color .2s cubic-bezier(.4,0,.2,1),color .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1);
+  white-space:nowrap;letter-spacing:-.1px;
+  flex-shrink:0;
+}
+.tab-btn:hover{color:var(--t2);}
+.tab-btn.on {
+  background:rgba(255,255,255,.1);
+  color:var(--t1);
+  box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+
+.topbar-right {
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+
+.chip {
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:20px;font-size:11.5px;font-weight:600;color:var(--t2);
+  white-space:nowrap;
+}
+.chip-green{background:rgba(48,209,88,.1);border-color:rgba(48,209,88,.2);color:#30d158;}
+.orb{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.orb-green{background:var(--green);box-shadow:0 0 6px rgba(48,209,88,.7);animation:pulse 2.5s ease-in-out infinite;}
+.orb-gray{background:var(--t3);}
+.orb-red{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Buttons ── */
+.btn {
+  cursor:pointer;border:none;border-radius:980px;
+  padding:8px 18px;font-family:inherit;font-size:13px;font-weight:700;
+  transition:background-color .2s cubic-bezier(.4,0,.2,1),color .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1);white-space:nowrap;letter-spacing:-.1px;
+}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:active:not(:disabled){transform:scale(.96)}
+.btn-blue{background:var(--blue);color:#fff;box-shadow:0 2px 12px rgba(41,151,255,.35);}
+.btn-blue:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 4px 20px rgba(41,151,255,.5);}
+.btn-ghost{background:var(--s1);color:var(--t2);border:1px solid var(--b1);}
+.btn-ghost:hover:not(:disabled){background:var(--s2);color:var(--t1);}
+.btn-green-soft{background:rgba(48,209,88,.12);color:var(--green);border:1px solid rgba(48,209,88,.2);}
+.btn-green-soft:hover:not(:disabled){background:rgba(48,209,88,.2);}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:8px;}
+
+/* ── Main ── */
+.main-wrap{position:relative;z-index:1;}
+.page{display:none;padding:20px;max-width:1100px;margin:0 auto;}
+.page.on{display:block;}
+
+/* ── Cards ── */
+.glass{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:var(--r);
+  background:rgba(20,20,30,.92);
+  transition:border-color .2s,box-shadow .2s;
+}
+.glass:hover{border-color:var(--b2);}
+.gp{padding:20px;}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi{
+  background:var(--s1);border:1px solid var(--b1);
+  border-radius:var(--r);padding:18px 16px;
+  position:relative;overflow:hidden;
+  transition:border-color .25s cubic-bezier(.4,0,.2,1),transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s cubic-bezier(.4,0,.2,1),background-color .25s cubic-bezier(.4,0,.2,1);
+}
+.kpi::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.025) 0%,transparent 60%);pointer-events:none;}
+.kpi:hover{border-color:var(--b2);transform:translateY(-2px);box-shadow:0 10px 36px rgba(0,0,0,.35);}
+.kpi-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px;}
+.kpi-v{font-size:32px;font-weight:800;letter-spacing:-1.5px;line-height:1;margin-bottom:4px;font-variant-numeric:tabular-nums;}
+.kpi-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;font-weight:700;}
+.kpi-d{font-size:12px;font-weight:600;margin-top:7px;color:var(--t3);}
+
+/* ── Two col ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* ── Sentiment bar ── */
+.sbar{height:5px;border-radius:3px;overflow:hidden;display:flex;gap:2px;margin:10px 0 8px;}
+.sb-g{background:var(--green);border-radius:3px;}
+.sb-o{background:var(--orange);border-radius:3px;}
+.sb-r{background:var(--red);border-radius:3px;}
+
+/* ── Mini stat ── */
+.mini{text-align:center;padding:12px 8px;background:rgba(255,255,255,.03);border:1px solid var(--b1);border-radius:var(--rxs);}
+.mini-v{font-size:20px;font-weight:800;letter-spacing:-.8px;}
+.mini-l{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;font-weight:700;}
+
+/* ── Review card ── */
+.rcard{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rsm);padding:16px;margin-bottom:10px;transition:border-color .2s cubic-bezier(.4,0,.2,1),background-color .2s cubic-bezier(.4,0,.2,1);}
+.rcard:hover{border-color:var(--b2);background:var(--s2);}
+.ai-box{margin-top:12px;background:rgba(41,151,255,.07);border:1px solid rgba(41,151,255,.14);border-radius:var(--rxs);padding:12px;}
+.ai-badge{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+.q-box{margin-top:12px;background:rgba(191,90,242,.07);border:1px solid rgba(191,90,242,.14);border-radius:var(--rxs);padding:12px;}
+.q-badge{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.tg{background:rgba(48,209,88,.12);color:#30d158;}
+.tr{background:rgba(255,69,58,.12);color:#ff453a;}
+.to{background:rgba(255,159,10,.12);color:#ff9f0a;}
+.tb{background:rgba(41,151,255,.12);color:#2997ff;}
+.tp{background:rgba(191,90,242,.12);color:#bf5af2;}
+.tgr{background:rgba(255,255,255,.06);color:var(--t3);}
+
+/* ── Stars ── */
+.son{color:var(--yellow)}.sof{color:rgba(255,255,255,.1)}
+
+/* ── Section header ── */
+.sh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
+.sh-t{font-size:18px;font-weight:800;letter-spacing:-.4px;}
+.sh-s{font-size:12px;color:var(--t3);margin-top:2px;font-weight:500;}
+
+/* ── Log ── */
+.logbox{background:#050508;border-radius:var(--rsm);padding:14px;height:420px;overflow-y:auto;font-family:'SF Mono','Fira Code',monospace;font-size:11px;line-height:1.8;}
+.lt{color:#2a2a40;margin-right:8px;}
+.li{color:#3a3a5a}.ls{color:#30d158}.le{color:#ff453a}.lw{color:#ffd60a}
+
+/* ── Input ── */
+input,textarea,select{
+  background:rgba(255,255,255,.05);border:1px solid var(--b1);
+  border-radius:var(--rxs);color:var(--t1);
+  font-family:inherit;font-size:14px;font-weight:500;
+  padding:10px 14px;width:100%;outline:none;transition:border-color .2s cubic-bezier(.4,0,.2,1),background-color .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1);
+}
+input:focus,textarea:focus{border-color:var(--blue);background:rgba(41,151,255,.06);box-shadow:0 0 0 3px rgba(41,151,255,.1);}
+textarea{resize:vertical;min-height:90px;}
+.fl{font-size:11px;font-weight:700;color:var(--t3);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── Toggle ── */
+.tgl{position:relative;width:44px;height:26px;flex-shrink:0;}
+.tgl input{opacity:0;position:absolute;width:0;height:0;}
+.tgl-sl{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.1);border-radius:26px;transition:.3s cubic-bezier(.4,0,.2,1);}
+.tgl-sl:before{content:"";position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 6px rgba(0,0,0,.4);}
+input:checked+.tgl-sl{background:var(--green);}
+input:checked+.tgl-sl:before{transform:translateX(18px);}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:rgba(16,16,26,.98);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:24px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+
+/* ── Analytics ── */
+.insight{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px;transition:border-color .2s;}
+.insight:hover{border-color:var(--b2);}
+.irow{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:var(--t2);line-height:1.5;}
+.irow:last-child{border-bottom:none;}
+.idot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.ai-section-tabs{display:flex;flex-wrap:wrap;gap:8px;}
+.ai-section-btn{cursor:pointer;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);color:var(--t3);font-family:inherit;font-size:12px;font-weight:700;transition:background-color .2s,color .2s,border-color .2s;}
+.ai-section-btn:hover{color:var(--t1);background:rgba(255,255,255,.07);}
+.ai-section-btn.on{background:rgba(41,151,255,.14);border-color:rgba(41,151,255,.24);color:#d8ecff;}
+.priority-matrix{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+.priority-matrix-item{padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);}
+.priority-matrix-value{font-size:24px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px;}
+.priority-matrix-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;font-weight:700;}
+.priority-matrix-note{font-size:11px;color:var(--t2);margin-top:6px;line-height:1.45;}
+.priority-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.priority-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;}
+.priority-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.priority-rank{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:999px;background:rgba(41,151,255,.12);color:#d8ecff;font-size:12px;font-weight:800;}
+.priority-title{font-size:15px;font-weight:800;line-height:1.35;letter-spacing:-.2px;}
+.priority-sub{font-size:12px;color:var(--t3);margin-top:5px;line-height:1.5;}
+.priority-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.priority-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent;}
+.priority-desc{font-size:13px;color:var(--t2);line-height:1.65;}
+.priority-effect{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--t2);line-height:1.55;}
+.priority-action{margin-top:12px;padding:11px 12px;border-radius:12px;background:rgba(41,151,255,.08);border:1px solid rgba(41,151,255,.14);font-size:12px;color:#d8ecff;line-height:1.6;}
+.priority-details{margin-top:12px;border-top:1px solid rgba(255,255,255,.06);padding-top:12px;}
+.priority-details summary{cursor:pointer;list-style:none;font-size:12px;font-weight:700;color:var(--t2);display:flex;align-items:center;gap:8px;}
+.priority-details summary::-webkit-details-marker{display:none;}
+.priority-details[open] summary{margin-bottom:10px;color:var(--t1);}
+.priority-reason{font-size:12px;color:var(--t3);line-height:1.6;margin-bottom:10px;}
+.lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.lab-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:18px;}
+.lab-card.hero{background:linear-gradient(135deg,rgba(41,151,255,.10),rgba(90,200,250,.04));border-color:rgba(41,151,255,.16);}
+.lab-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.lab-eyebrow{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;font-weight:700;margin-bottom:6px;}
+.lab-title{font-size:18px;font-weight:800;letter-spacing:-.4px;line-height:1.35;}
+.lab-sub{font-size:12px;color:var(--t3);margin-top:6px;line-height:1.6;}
+.lab-kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px;}
+.lab-kpi{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);}
+.lab-kpi-value{font-size:18px;font-weight:800;letter-spacing:-.4px;line-height:1.2;}
+.lab-kpi-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:5px;}
+.lab-section-title{font-size:15px;font-weight:800;line-height:1.35;letter-spacing:-.2px;margin-bottom:6px;}
+.lab-section-desc{font-size:12px;color:var(--t3);line-height:1.55;margin-bottom:14px;}
+.lab-list{display:flex;flex-direction:column;gap:10px;}
+.lab-item{padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.lab-item-title{font-size:13px;font-weight:700;line-height:1.45;}
+.lab-item-text{font-size:12px;color:var(--t2);line-height:1.6;margin-top:5px;}
+.lab-item-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.lab-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);color:var(--t2);}
+.lab-quote{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);font-size:12px;color:var(--t2);line-height:1.55;}
+.lab-quote::before{content:"“";color:var(--t3);margin-right:3px;}
+.lab-empty{font-size:13px;color:var(--t3);line-height:1.65;}
+.lab-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.lab-copy-btn{padding:7px 12px;font-size:12px;border-radius:10px;}
+.product-zone-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:16px;align-items:stretch;}
+.zone-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:18px;display:flex;flex-direction:column;min-height:100%;}
+.zone-head{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:14px;}
+.zone-name{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;letter-spacing:-.25px;line-height:1.28;}
+.zone-icon{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-size:15px;flex-shrink:0;}
+.zone-name span:last-child{display:block;}
+.zone-status{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid transparent;white-space:nowrap;align-self:flex-start;}
+.zone-balance{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:14px;}
+.zone-stat{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);min-height:88px;display:flex;flex-direction:column;justify-content:space-between;}
+.zone-stat-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.zone-stat-value{font-size:16px;font-weight:800;line-height:1.2;margin-top:6px;}
+.zone-focus{font-size:12px;color:var(--t2);line-height:1.6;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px;}
+.zone-focus strong{color:var(--t1);}
+.zone-evidence{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);font-size:11px;color:var(--t3);line-height:1.6;}
+.zone-empty{font-size:13px;color:var(--t3);line-height:1.6;padding:14px 0;}
+.product-map-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px;align-items:start;}
+.signal-stack{display:flex;flex-direction:column;gap:12px;}
+.signal-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;}
+.signal-card.problem{background:linear-gradient(135deg,rgba(255,69,58,.08),rgba(255,69,58,.02));border-color:rgba(255,69,58,.14);}
+.signal-card.positive{background:linear-gradient(135deg,rgba(48,209,88,.08),rgba(48,209,88,.02));border-color:rgba(48,209,88,.14);}
+.signal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.signal-title{font-size:15px;font-weight:800;line-height:1.35;letter-spacing:-.2px;}
+.signal-score{font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);white-space:nowrap;}
+.signal-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.signal-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent;}
+.signal-body{font-size:13px;color:var(--t2);line-height:1.6;}
+.signal-action{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(41,151,255,.09);border:1px solid rgba(41,151,255,.15);font-size:12px;color:#cfe7ff;line-height:1.6;}
+.signal-quotes{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.signal-quote{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);font-size:12px;color:var(--t2);line-height:1.55;}
+.signal-quote::before{content:"“";color:var(--t3);margin-right:3px;}
+.signal-empty{font-size:13px;color:var(--t3);line-height:1.6;}
+.overall{background:linear-gradient(135deg,rgba(41,151,255,.08),rgba(41,151,255,.02));border:1px solid rgba(41,151,255,.14);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.gen-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--blue),#34aadc);color:#fff;border:none;border-radius:var(--rsm);padding:11px 22px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),opacity .2s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(41,151,255,.3);}
+.gen-btn:hover:not(:disabled){box-shadow:0 6px 24px rgba(41,151,255,.5);transform:translateY(-1px);}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.pseg{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--b1);border-radius:var(--rxs);padding:3px;gap:2px;}
+.pbtn{cursor:pointer;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:700;border:none;background:transparent;color:var(--t3);font-family:inherit;transition:all .15s;}
+.pbtn:hover{color:var(--t2);}
+.pbtn.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(41,151,255,.4);}
+
+/* ── Settings ── */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:rgba(255,255,255,.03);border:1px solid var(--b1);border-radius:var(--rxs);margin-bottom:9px;}
+.codeblock{background:#050508;border-radius:var(--rxs);padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:10.5px;color:var(--green);line-height:1.9;white-space:pre-wrap;}
+.tip{padding:10px 13px;border-radius:var(--rxs);font-size:12px;line-height:1.6;margin-top:10px;}
+.tip-b{background:rgba(41,151,255,.07);border:1px solid rgba(41,151,255,.14);color:rgba(41,151,255,.9);}
+.tip-o{background:rgba(255,159,10,.07);border:1px solid rgba(255,159,10,.18);color:var(--orange);}
+
+/* ── Offline ── */
+.offline{background:rgba(255,69,58,.08);border:1px solid rgba(255,69,58,.18);border-radius:var(--rxs);padding:11px 16px;margin:12px 20px;font-size:13px;color:var(--red);font-weight:500;}
+
+/* ── Spinner ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ── Bottom nav (mobile) ── */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(12,12,18,.96);border-top:1px solid var(--b1);padding:8px 0 calc(8px + env(safe-area-inset-bottom));justify-content:space-around;}
+.bot-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;border-radius:10px;transition:background-color .2s cubic-bezier(.4,0,.2,1),color .2s cubic-bezier(.4,0,.2,1);border:none;background:transparent;color:var(--t3);font-family:inherit;}
+.bot-item.on{color:var(--blue);}
+.bot-ico{font-size:20px;line-height:1;}
+.bot-lbl{font-size:10px;font-weight:700;letter-spacing:.1px;}
+
+/* ── Misc ── */
+.flex{display:flex;align-items:center;gap:8px;}
+.flex-b{display:flex;align-items:center;justify-content:space-between;}
+.mb3{margin-bottom:12px;}
+.mb4{margin-bottom:16px;}
+code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;font-size:11px;font-family:'SF Mono',monospace;color:var(--teal);}
+a.lnk{color:var(--blue);text-decoration:none;font-size:11px;}
+a.lnk:hover{text-decoration:underline;}
+.stagger{animation:si .35s cubic-bezier(.4,0,.2,1) both;}
+@keyframes si{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+  }
+  .kpi:hover { transform:none; box-shadow:none; }
+}
+
+/* ── Rating bar ── */
+.rbar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.rfill{height:6px;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.catbar{height:4px;border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+
+/* ══════ RESPONSIVE ══════ */
+@media (max-width: 768px) {
+  /* Show bottom nav, hide topbar center tabs */
+  .topbar-center { display:none; }
+  .bot-nav { display:flex; }
+  .page { padding:14px 14px 90px; }
+
+  /* Stack KPI 2 cols */
+  .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .kpi { padding:14px 12px; }
+  .kpi-v { font-size:26px; }
+
+  /* Stack two cols */
+  .two-col  { grid-template-columns:1fr; gap:10px; }
+  .three-col{ grid-template-columns:1fr 1fr; gap:10px; }
+  .lab-grid { grid-template-columns:1fr; gap:10px; }
+  .lab-kpi-row { grid-template-columns:1fr 1fr; gap:10px; }
+  .priority-matrix { grid-template-columns:1fr 1fr; gap:10px; }
+  .priority-grid { grid-template-columns:1fr; gap:10px; }
+  .product-zone-grid { grid-template-columns:1fr; gap:10px; }
+  .product-map-grid { grid-template-columns:1fr; gap:10px; }
+
+  /* Topbar: hide chip, compact */
+  .chip.chip-cron { display:none; }
+  .brand-name { display:none; }
+  .topbar { padding:0 14px; }
+  .btn-blue { padding:7px 14px; font-size:12px; }
+
+  /* Log */
+  .logbox { height:340px; }
+
+  /* Settings */
+  .settings-grid { grid-template-columns:1fr; }
+
+  /* Analytics */
+  .insight-grid { grid-template-columns:1fr !important; }
+
+  /* Sbar wider */
+  .sbar { width:100% !important; }
+
+  /* sh */
+  .sh { gap:8px; }
+  .sh-t { font-size:16px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns:1fr 1fr; }
+  .kpi-v { font-size:24px; letter-spacing:-1px; }
+  .three-col { grid-template-columns:1fr 1fr; }
+  .topbar-right .chip:not(.chip-srv) { display:none; }
+}
+
+@media (min-width: 769px) {
+  .bot-nav { display:none; }
+  .topbar-center { display:flex; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ReviewOS · Premium design overrides
+   ════════════════════════════════════════════════════════════════════════════ */
+body {
+  background:
+    radial-gradient(900px 500px at 12% -10%, rgba(41,151,255,.06), transparent 55%),
+    radial-gradient(800px 400px at 92% 8%, rgba(191,90,242,.05), transparent 60%),
+    var(--bg) !important;
+  font-family: var(--font) !important;
+  color: var(--t1);
+}
+
+/* Topbar */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(10,12,18,.78) !important;
+  border-bottom: 1px solid var(--line) !important;
+  padding: 14px 28px !important;
+  max-width: 100% !important;
+}
+.brand { gap: 11px; }
+.brand-icon {
+  width: 30px; height: 30px; border-radius: 8px !important;
+  background: linear-gradient(135deg, var(--accent), var(--primary)) !important;
+  box-shadow: 0 6px 22px rgba(41,151,255,.4) !important;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-icon .brand-core { font-size: 11px; font-weight: 800; color: #fff; letter-spacing: 0; }
+.brand-icon .brand-dot, .brand-icon .brand-beam { display: none !important; }
+.brand-name { font-size: 16px !important; font-weight: 700 !important; letter-spacing: -.3px !important; color: var(--t1) !important; }
+
+.topbar-center { gap: 4px !important; }
+.tab-btn {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--t2) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 8px 14px !important;
+  border-radius: 9px !important;
+  transition: background .15s, color .15s;
+  letter-spacing: 0 !important;
+}
+.tab-btn:hover { background: var(--panel-2) !important; color: var(--t1) !important; }
+.tab-btn.on {
+  background: var(--panel-2) !important;
+  color: var(--t1) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+/* Status chip */
+.chip {
+  background: var(--panel-2) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--t2) !important;
+  padding: 6px 12px !important;
+}
+.orb { width: 7px; height: 7px; }
+.orb-green { background: var(--green) !important; box-shadow: 0 0 8px rgba(48,209,88,.7); }
+.orb-red { background: var(--red) !important; box-shadow: 0 0 8px rgba(255,69,58,.7); }
+
+/* Buttons in topbar */
+.btn {
+  border-radius: 11px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 9px 16px !important;
+  font-family: inherit;
+}
+.btn-blue {
+  background: var(--primary) !important;
+  border: 1px solid var(--primary) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(41,151,255,.32) !important;
+}
+.btn-blue:hover:not(:disabled) {
+  background: var(--primary-2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(41,151,255,.42) !important;
+}
+.btn-ghost {
+  background: transparent !important;
+  border: 1px solid var(--line) !important;
+  color: var(--t2) !important;
+}
+.btn-ghost:hover { background: var(--panel-2) !important; color: var(--t1) !important; border-color: var(--line-2) !important; }
+.btn-sm { padding: 7px 13px !important; font-size: 12px !important; }
+
+/* Main wrap */
+.main-wrap {
+  max-width: 1320px !important;
+  margin: 0 auto !important;
+  padding: 28px !important;
+}
+
+/* KPI cards */
+.kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 14px !important;
+  margin-bottom: 18px !important;
+}
+.kpi {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 18px 20px !important;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.kpi::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+}
+.kpi-ico {
+  width: 36px !important; height: 36px !important;
+  border-radius: 10px !important;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px !important;
+  margin-bottom: 12px;
+}
+.kpi-v {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.8px !important;
+  line-height: 1.1 !important;
+  margin: 4px 0;
+}
+.kpi-l {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--t3) !important;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-top: 6px;
+}
+.kpi-d {
+  font-size: 11.5px !important;
+  color: var(--t2) !important;
+  margin-top: 6px;
+}
+
+/* Glass panels */
+.glass, .glass.gp {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 20px !important;
+  backdrop-filter: none !important;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Section header */
+.sh-t { font-size: 15px !important; font-weight: 700 !important; letter-spacing: -.2px !important; color: var(--t1) !important; }
+.sh-s { font-size: 12px !important; color: var(--t3) !important; margin-top: 2px; }
+
+/* Forms */
+input:not([type="checkbox"]):not([type="radio"]):not(.rs):not(.tab-btn):not(.btn),
+textarea:not(.rs),
+select:not(.rs) {
+  background: var(--panel-2) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 11px !important;
+  padding: 11px 14px !important;
+  color: var(--t1) !important;
+  font-size: 13.5px !important;
+  font-family: inherit !important;
+  outline: none;
+  transition: border-color .15s, background .15s;
+  width: 100%;
+}
+input:not([type="checkbox"]):not([type="radio"]):not(.rs):focus,
+textarea:not(.rs):focus,
+select:not(.rs):focus {
+  border-color: var(--primary) !important;
+  background: var(--panel-3) !important;
+}
+.fl {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--t3) !important;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px !important;
+  display: block;
+}
+
+/* Tips */
+.tip {
+  font-size: 11.5px !important;
+  padding: 9px 12px !important;
+  border-radius: 8px !important;
+  background: var(--panel-2) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--t2) !important;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.tip-b { border-left: 3px solid var(--primary) !important; }
+.tip-o { border-left: 3px solid var(--orange) !important; color: var(--orange) !important; }
+.tip-g { border-left: 3px solid var(--green) !important; }
+
+/* Toggle */
+.srow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 12px;
+  margin-bottom: 12px;
+}
+.tgl { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl-sl {
+  position: absolute; cursor: pointer; inset: 0;
+  background: var(--line-2); border-radius: 24px; transition: .2s;
+}
+.tgl-sl::before {
+  content: ""; position: absolute; height: 18px; width: 18px;
+  left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s;
+}
+.tgl input:checked + .tgl-sl { background: var(--primary); }
+.tgl input:checked + .tgl-sl::before { transform: translateX(20px); }
+
+/* Cycle button */
+#cycle-btn {
+  background: linear-gradient(135deg, var(--primary), #1a8aff) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(41,151,255,.36) !important;
+}
+
+/* Bottom nav */
+.bot-nav {
+  background: rgba(10,12,18,.92) !important;
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line) !important;
+}
+.bot-item {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--t3) !important;
+  font-family: inherit;
+}
+.bot-item.on { color: var(--primary) !important; }
+.bot-lbl { font-size: 10px !important; font-weight: 600 !important; }
+
+/* Recent items */
+.two-col {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px !important;
+}
+@media(max-width: 900px) { .two-col { grid-template-columns: 1fr !important; } }
+
+/* Codeblock */
+.codeblock {
+  background: var(--panel-2) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  font-family: var(--mono) !important;
+  font-size: 11.5px !important;
+  color: var(--t2) !important;
+  white-space: pre-wrap;
+}
+
+/* Offline bar */
+.offline {
+  background: rgba(255,69,58,.08) !important;
+  border-bottom: 1px solid rgba(255,69,58,.3) !important;
+  color: #ffb8b3 !important;
+  font-size: 12.5px !important;
+  text-align: center;
+  padding: 10px;
+}
+
+/* Стара sbar / mini */
+.sbar { height: 8px; border-radius: 5px; background: var(--panel-3); overflow: hidden; }
+.mini { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.mini-v { font-size: 18px; font-weight: 800; letter-spacing: -.4px; }
+.mini-l { font-size: 10.5px; color: var(--t3); margin-top: 2px; font-weight: 600; }
+
+/* Stars in reviews */
+.son { color: #ffd60a; }
+.sof { color: var(--t4); }
+
+/* Hero block */
+.rs-greet {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.rs-greet .title { font-size: 26px; font-weight: 800; letter-spacing: -.8px; line-height: 1.15; }
+.rs-greet .title .accent { background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rs-greet .sub { font-size: 13px; color: var(--t2); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon" aria-hidden="true">
+      <span class="brand-core">AI</span>
+      <span class="brand-dot brand-dot-a"></span>
+      <span class="brand-dot brand-dot-b"></span>
+      <span class="brand-dot brand-dot-c"></span>
+      <span class="brand-beam"></span>
+    </div>
+    <div class="brand-name">ReviewOS</div>
+  </div>
+
+  <!-- Desktop tabs -->
+  <div class="topbar-center" id="desktop-tabs">
+    <button class="tab-btn on" onclick="setTab('dash')"      id="dtab-dash">Дашборд</button>
+    <a class="tab-btn" href="/wb.html" id="dtab-wb" style="text-decoration:none;display:inline-flex;align-items:center">🇨🇳 WB Studio</a>
+    <button class="tab-btn"    onclick="setTab('rev')"       id="dtab-rev">Отзывы</button>
+    <button class="tab-btn"    onclick="setTab('q')"         id="dtab-q">Вопросы</button>
+    <button class="tab-btn"    onclick="setTab('chat')"      id="dtab-chat">💬 Чаты</button>
+    <button class="tab-btn"    onclick="setTab('log')"       id="dtab-log">Лог</button>
+    <button class="tab-btn"    onclick="setTab('set')"       id="dtab-set">Настройки</button>
+  </div>
+
+  <div class="topbar-right">
+    <div class="chip chip-cron chip-green" id="cron-chip" style="display:none">
+      <div class="orb orb-green"></div>
+      <span id="cron-txt"></span>
+    </div>
+    <div class="chip chip-srv">
+      <div class="orb" id="srv-orb"></div>
+      <span id="srv-txt">…</span>
+    </div>
+    <button class="btn btn-blue" id="cycle-btn" onclick="runCycle()">▶ Цикл</button>
+    <button class="btn btn-ghost" onclick="logout()" style="font-size:12px">Выйти</button>
+  </div>
+</div>
+
+<!-- Offline -->
+<div id="offline-bar" class="offline" style="display:none">
+  ❌ <strong>Сервер недоступен</strong> — запустите <code>node index.js</code>
+</div>
+<div id="cycle-note" style="display:none;margin:0 18px 14px;padding:12px 14px;border-radius:14px;font-size:12px;font-weight:650;line-height:1.55"></div>
+
+<!-- ── Pages ── -->
+<div class="main-wrap">
+
+  <!-- DASHBOARD -->
+  <div class="page on stagger" id="page-dash">
+    <!-- HERO -->
+    <div class="rs-greet">
+      <div>
+        <div class="title">Операции в <span class="accent">маркетплейсах</span> на автопилоте</div>
+        <div class="sub">Отзывы и вопросы Ozon + WB, AI-ответы с настраиваемой тональностью, инспекция в Китае на основе отзывов и сравнение с конкурентами.</div>
+      </div>
+      <div class="rs-row">
+        <a href="/wb.html" class="rs-btn ghost">→ WB Studio</a>
+        <button class="rs-btn" id="cycle-hero-btn" onclick="runCycle()">▶ Запустить цикл Ozon</button>
+      </div>
+    </div>
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-ico" style="background:rgba(41,151,255,.14)">💬</div>
+        <div class="kpi-v" id="kv-rtotal" style="color:var(--blue)">—</div>
+        <div class="kpi-l">Отзывов</div>
+        <div class="kpi-d" id="kd-rtotal">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:rgba(48,209,88,.14)">😊</div>
+        <div class="kpi-v" id="kv-rpos" style="color:var(--green)">—</div>
+        <div class="kpi-l">Позитивных</div>
+        <div class="kpi-d" id="kd-rpos" style="color:var(--green)">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:rgba(255,69,58,.14)">😠</div>
+        <div class="kpi-v" id="kv-rneg" style="color:var(--red)">—</div>
+        <div class="kpi-l">Негативных</div>
+        <div class="kpi-d" id="kd-rneg" style="color:var(--red)">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:rgba(191,90,242,.14)">❓</div>
+        <div class="kpi-v" id="kv-qtotal" style="color:var(--purple)">—</div>
+        <div class="kpi-l">Вопросов</div>
+        <div class="kpi-d" id="kd-qtotal" style="color:var(--t3)">—</div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="glass gp mb4" style="margin-bottom:14px">
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;font-weight:700;margin-bottom:6px">Тональность</div>
+          <div class="sbar" id="sbar" style="width:100%;max-width:320px"></div>
+          <div class="flex" style="gap:12px;flex-wrap:wrap">
+            <div class="flex" style="gap:4px;font-size:11px;color:var(--t3)"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span>Позитивные</div>
+            <div class="flex" style="gap:4px;font-size:11px;color:var(--t3)"><span style="width:6px;height:6px;background:var(--orange);border-radius:50%;display:inline-block"></span>Нейтральные</div>
+            <div class="flex" style="gap:4px;font-size:11px;color:var(--t3)"><span style="width:6px;height:6px;background:var(--red);border-radius:50%;display:inline-block"></span>Негативные</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0">
+          <div class="mini"><div class="mini-v" id="ms-pend" style="color:var(--orange)">—</div><div class="mini-l">Ожидают</div></div>
+          <div class="mini"><div class="mini-v" id="ms-ready" style="color:var(--blue)">—</div><div class="mini-l">Готовы</div></div>
+          <div class="mini"><div class="mini-v" id="ms-posted" style="color:var(--green)">—</div><div class="mini-l">Опубл.</div></div>
+          <div class="mini"><div class="mini-v" id="ms-cycle" style="font-size:11px;letter-spacing:0;color:var(--t2)">—</div><div class="mini-l">Цикл</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent -->
+    <div class="two-col">
+      <div class="glass gp">
+        <div class="sh mb3">
+          <div><div class="sh-t" style="font-size:14px">Последние отзывы</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="setTab('rev')">Все →</button>
+        </div>
+        <div id="recent-rev"></div>
+      </div>
+      <div class="glass gp">
+        <div class="sh mb3">
+          <div><div class="sh-t" style="font-size:14px">Последние вопросы</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="setTab('q')">Все →</button>
+        </div>
+        <div id="recent-q"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="page stagger" id="page-rev">
+    <div class="rs-greet">
+      <div>
+        <div class="title">Отзывы Ozon + Wildberries</div>
+        <div class="sub" id="rev-sub">Объединённая лента · AI-ответы с настраиваемой тональностью</div>
+      </div>
+    </div>
+    <div class="rs-panel" style="padding:14px;margin-bottom:14px">
+      <div class="rs-row" style="gap:8px;flex-wrap:wrap">
+        <input id="rev-search" class="rs" placeholder="🔍 Поиск по тексту, бренду или товару…" style="flex:1;min-width:240px" oninput="renderRevList()">
+        <div class="rs-row" style="gap:4px">
+          <button class="rs-btn ghost icon" data-rev-src="all" onclick="setRevFilter('src','all')">Все</button>
+          <button class="rs-btn ghost icon" data-rev-src="ozon" onclick="setRevFilter('src','ozon')">Ozon</button>
+          <button class="rs-btn ghost icon" data-rev-src="wb" onclick="setRevFilter('src','wb')">WB</button>
+        </div>
+        <div class="rs-row" style="gap:4px">
+          <button class="rs-btn ghost icon" data-rev-st="all" onclick="setRevFilter('st','all')">Все</button>
+          <button class="rs-btn ghost icon" data-rev-st="pending" onclick="setRevFilter('st','pending')">⏳ Ждут</button>
+          <button class="rs-btn ghost icon" data-rev-st="ready" onclick="setRevFilter('st','ready')">📝 Готовы</button>
+          <button class="rs-btn ghost icon" data-rev-st="posted" onclick="setRevFilter('st','posted')">✓ Опубл.</button>
+        </div>
+      </div>
+    </div>
+    <div id="rev-list"></div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="page stagger" id="page-q">
+    <div class="rs-greet">
+      <div>
+        <div class="title">Вопросы Ozon + Wildberries</div>
+        <div class="sub" id="q-sub">Ответы строятся на основе характеристик товара из карточки маркетплейса</div>
+      </div>
+    </div>
+    <div class="rs-panel" style="padding:14px;margin-bottom:14px">
+      <div class="rs-row" style="gap:8px;flex-wrap:wrap">
+        <input id="q-search" class="rs" placeholder="🔍 Поиск по тексту или товару…" style="flex:1;min-width:240px" oninput="renderQList()">
+        <div class="rs-row" style="gap:4px">
+          <button class="rs-btn ghost icon" data-q-src="all" onclick="setQFilter('src','all')">Все</button>
+          <button class="rs-btn ghost icon" data-q-src="ozon" onclick="setQFilter('src','ozon')">Ozon</button>
+          <button class="rs-btn ghost icon" data-q-src="wb" onclick="setQFilter('src','wb')">WB</button>
+        </div>
+        <div class="rs-row" style="gap:4px">
+          <button class="rs-btn ghost icon" data-q-st="all" onclick="setQFilter('st','all')">Все</button>
+          <button class="rs-btn ghost icon" data-q-st="pending" onclick="setQFilter('st','pending')">⏳ Ждут</button>
+          <button class="rs-btn ghost icon" data-q-st="ready" onclick="setQFilter('st','ready')">📝 Готовы</button>
+          <button class="rs-btn ghost icon" data-q-st="posted" onclick="setQFilter('st','posted')">✓ Опубл.</button>
+        </div>
+      </div>
+    </div>
+    <div id="q-list"></div>
+  </div>
+
+  <!-- CHATS -->
+  <div class="page stagger" id="page-chat">
+    <div class="rs-greet">
+      <div>
+        <div class="title">Чаты с покупателями</div>
+        <div class="sub" id="chat-sub">Ozon Seller Chat · AI читает диалог, классифицирует и предлагает ответ. Окно отправки через API — 48 часов.</div>
+      </div>
+      <div class="rs-row">
+        <button class="rs-btn" id="btn-chats-sync" title="Скачать список диалогов и историю сообщений из Ozon Seller API">📥 Синхронизировать с Ozon</button>
+        <button class="rs-btn ghost" id="btn-chats-reload" title="Перечитать локальный кеш чатов">↻ Обновить</button>
+        <button class="rs-btn ghost" id="btn-chats-debug" title="Показать сырой ответ Ozon — на случай если чаты не подтянулись">🔍 Диагностика</button>
+      </div>
+    </div>
+
+    <div id="chats-debug-out" style="margin-bottom:14px"></div>
+
+    <div class="rs-panel" style="padding:12px;margin-bottom:14px">
+      <div class="rs-row" style="gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="chat-search" class="rs" placeholder="Поиск по имени, тексту…" style="flex:1;min-width:240px" oninput="renderChatList()">
+        <div class="rs-row" style="gap:4px;flex-wrap:wrap" title="Фильтр диалогов">
+          <button class="rs-btn ghost icon" data-chat-f="all" onclick="setChatFilter('all')">Все</button>
+          <button class="rs-btn ghost icon" data-chat-f="active" onclick="setChatFilter('active')" title="Окно ответа ещё открыто (< 48 часов)">⏱ Можно ответить</button>
+          <button class="rs-btn ghost icon" data-chat-f="drafted" onclick="setChatFilter('drafted')" title="Есть AI-черновик">📝 Черновики</button>
+          <button class="rs-btn ghost icon" data-chat-f="escalated" onclick="setChatFilter('escalated')" title="Помечены как требующие живого менеджера">🚨 На человека</button>
+        </div>
+        <label class="rs-row" style="gap:6px;font-size:11.5px;color:var(--t3);cursor:pointer" title="Показывать системные чаты Ozon (нотификации, поддержка)">
+          <input type="checkbox" id="chat-show-system" onchange="toggleSystemChats()" style="margin:0">
+          Системные
+        </label>
+      </div>
+    </div>
+
+    <div id="chat-layout" style="display:grid;grid-template-columns:360px 1fr;gap:14px;height:calc(100vh - 320px);min-height:560px">
+      <div class="rs-panel" style="padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:0">
+        <div id="chat-list" style="overflow-y:auto;flex:1;min-height:0"></div>
+      </div>
+      <div class="rs-panel" id="chat-view" style="padding:0;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+        <div id="chat-view-content" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;padding:32px;min-height:0">
+          ← Выбери диалог слева
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="page stagger" id="page-log">
+    <div class="rs-greet">
+      <div>
+        <div class="title">Системный лог</div>
+        <div class="sub">Что происходит на бэкенде: циклы, ошибки API, публикации</div>
+      </div>
+      <button class="rs-btn ghost" onclick="clogs()">Очистить лог</button>
+    </div>
+    <div class="glass gp" style="background:var(--panel);border-color:var(--line);padding:0;overflow:hidden">
+      <div class="logbox" id="logbox" style="padding:18px"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page stagger" id="page-set">
+    <div class="rs-greet">
+      <div>
+        <div class="title">Настройки</div>
+        <div class="sub">API-ключи маркетплейсов, расписание циклов, тональность AI-ответов</div>
+      </div>
+    </div>
+    <div class="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="glass gp">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🔑 Ozon Seller API</div>
+        <div class="mb3"><label class="fl">Client ID</label><input id="ic" placeholder="12345678"></div>
+        <div class="mb3"><label class="fl">API Key <span id="kh" style="color:var(--green);font-weight:700"></span></label><input type="password" id="ik" placeholder="Введите новый ключ…"></div>
+        <div class="flex mb3">
+          <button class="btn btn-blue" onclick="saveS()" style="flex:1">Сохранить</button>
+          <button class="btn btn-ghost" onclick="testO()">Тест</button>
+        </div>
+        <div id="test-r"></div>
+        <div class="tip tip-b">Ключи: Ozon Seller → Настройки → API ключи</div>
+      </div>
+      <div class="glass gp">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">⚙️ Автоматизация</div>
+        <div class="mb3"><label class="fl">Расписание (cron)</label><input id="icr" placeholder="*/5 * * * *"><div style="font-size:11px;color:var(--t3);margin-top:6px"><code>*/5 * * * *</code> = каждые 5 мин</div></div>
+        <div class="srow">
+          <div><div style="font-size:13px;font-weight:600">Авто-публикация</div><div style="font-size:11px;color:var(--t3);margin-top:2px">Отвечать автоматически</div></div>
+          <label class="tgl"><input type="checkbox" id="ia"><span class="tgl-sl"></span></label>
+        </div>
+        <button class="btn btn-blue" onclick="saveS()" style="width:100%">Сохранить настройки</button>
+        <div class="tip tip-o" style="margin-top:10px">⚠️ Изменения расписания требуют перезапуска</div>
+      </div>
+      <div class="glass gp">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🟣 Wildberries Seller API</div>
+        <div class="mb3"><label class="fl">WB API Key <span id="wkh" style="color:var(--green);font-weight:700"></span></label><input type="password" id="wk" placeholder="Введите токен из ЛК WB →  Доступ к API"></div>
+        <div class="flex mb3">
+          <button class="btn btn-blue" onclick="saveS()" style="flex:1">Сохранить</button>
+          <button class="btn btn-ghost" onclick="testW()">Тест</button>
+        </div>
+        <div id="test-w"></div>
+        <div class="tip tip-b">Где взять: WB Seller → Профиль → Настройки → Доступ к API. Нужно «Отзывы и вопросы».</div>
+      </div>
+
+      <div class="glass gp" style="grid-column:1/-1">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🤖 AI-провайдер и модель</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:14px">Anthropic — нативный SDK (быстрее, ключ в .env). OpenRouter — единый прокси к Claude, GPT-4o, Gemini, Llama и др. (ключ хранится в Settings).</div>
+        <div id="ai-providers" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
+        <div id="ai-model-wrap">
+          <label class="fl">Модель</label>
+          <select id="ai-model" style="margin-bottom:10px"></select>
+          <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Или вставь свой ID модели:</div>
+          <input id="ai-model-custom" placeholder="например anthropic/claude-sonnet-4 или openai/gpt-5">
+        </div>
+        <div id="openrouter-wrap" style="margin-top:14px;display:none">
+          <label class="fl">OpenRouter API Key <span id="orkh" style="color:var(--green);font-weight:700"></span></label>
+          <input type="password" id="ork" placeholder="sk-or-v1-…">
+          <div class="flex mb3" style="margin-top:10px">
+            <button class="btn btn-blue" onclick="saveS()" style="flex:1">Сохранить</button>
+            <button class="btn btn-ghost" onclick="testOR()">Тест ключа</button>
+          </div>
+          <div id="test-or"></div>
+          <div class="tip tip-b">Получить ключ: openrouter.ai → Settings → Keys. Оплачивается отдельно (по моделям).</div>
+        </div>
+        <div style="margin-top:10px">
+          <button class="btn btn-blue" onclick="saveS()">Сохранить AI-настройки</button>
+          <button class="btn btn-ghost" onclick="previewTone()" style="margin-left:8px">🎭 Превью на отзыве</button>
+        </div>
+        <div id="tone-preview-out" style="margin-top:14px"></div>
+      </div>
+
+      <div class="glass gp" style="grid-column:1/-1">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🎨 Тональность AI-ответов</div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:14px">Выбранный стиль применяется ко всем AI-ответам на отзывы и вопросы (Ozon и Wildberries). Можно задать свой промпт целиком.</div>
+        <div id="tone-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px"></div>
+        <div id="tone-custom-wrap" style="display:none">
+          <label class="fl">Свой промпт (используется при выборе «Свой промпт»)</label>
+          <textarea id="tone-custom" rows="6" style="width:100%;background:var(--bg2);color:var(--t1);border:1px solid var(--b1);border-radius:10px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.55" placeholder="Напр.: Ты — бренд-менеджер премиум-сегмента, отвечаешь сдержанно, без эмодзи, всегда подчёркивай качество материалов и сервис…"></textarea>
+        </div>
+        <div style="margin-top:14px"><button class="btn btn-blue" onclick="saveS()">Сохранить тональность</button></div>
+      </div>
+
+      <div class="glass gp" style="grid-column:1/-1">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🚀 Быстрый старт</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+          ${[["Первый запуск","cd server\nnpm install\ncp .env.example .env\nnode index.js"],["PM2 продакшн","npm install -g pm2\nnpm run pm2:start\npm2 save && pm2 startup"],["Telegram бот","node telegram-bot.js"],["Файл .env","OZON_CLIENT_ID=...\nOZON_API_KEY=...\nANTHROPIC_API_KEY=...\nAUTO_POST=false"]].map(([t,c])=>`<div><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:7px">${t}</div><div class="codeblock">${c}</div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bot-nav" id="bot-nav">
+  <button class="bot-item on" onclick="setTab('dash')" id="bnav-dash"><div class="bot-ico">⬛</div><div class="bot-lbl">Home</div></button>
+  <a class="bot-item" href="/wb.html" id="bnav-wb" style="text-decoration:none;color:inherit"><div class="bot-ico">🇨🇳</div><div class="bot-lbl">WB</div></a>
+  <button class="bot-item" onclick="setTab('rev')" id="bnav-rev"><div class="bot-ico">💬</div><div class="bot-lbl">Reviews</div></button>
+  <button class="bot-item" onclick="setTab('q')" id="bnav-q"><div class="bot-ico">❓</div><div class="bot-lbl">Q&A</div></button>
+  <button class="bot-item" onclick="setTab('chat')" id="bnav-chat"><div class="bot-ico">💬</div><div class="bot-lbl">Chats</div></button>
+  <button class="bot-item" onclick="setTab('set')" id="bnav-set"><div class="bot-ico">⚙️</div><div class="bot-lbl">Settings</div></button>
+</nav>
+
+<!-- Modal -->
+<div id="modal" class="modal-bg" style="display:none" onclick="if(event.target===this)closeM()">
+  <div class="modal">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px" id="m-title">Редактировать</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:14px" id="m-sub"></div>
+    <textarea rows="5" id="m-text"></textarea>
+    <div class="flex" style="justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeM()">Отмена</button>
+      <button class="btn btn-blue" onclick="saveEdit()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script src="/vendor/pdfmake.min.js"></script>
+<script src="/vendor/vfs_fonts.js"></script>
+<script>
+// Глобальный error-handler — показывает реальную причину «ничего не работает»
+window.addEventListener("error", (e) => {
+  const msg = `JS ERROR: ${e.message}\n${e.filename || ""}:${e.lineno || "?"}:${e.colno || "?"}`;
+  console.error(msg, e.error);
+  const bar = document.createElement("div");
+  bar.style.cssText = "position:fixed;left:10px;right:10px;bottom:10px;z-index:9999;background:#3a0d0f;color:#ffd2cf;border:1px solid #ff453a;border-radius:10px;padding:12px 36px 12px 14px;font:12px/1.5 monospace;white-space:pre-wrap;max-height:30vh;overflow:auto;cursor:pointer";
+  bar.title = "Клик чтобы закрыть";
+  bar.textContent = msg;
+  const close = document.createElement("span");
+  close.textContent = "✕";
+  close.style.cssText = "position:absolute;top:8px;right:14px;font-size:16px;color:#ffd2cf;cursor:pointer;font-family:sans-serif";
+  bar.style.position = "fixed";
+  bar.appendChild(close);
+  bar.onclick = () => bar.remove();
+  document.body.appendChild(bar);
+  if (window.MX?.springToast) window.MX.springToast(bar);
+  setTimeout(() => bar.remove(), 30000);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = `Promise rejected: ${(e.reason && (e.reason.stack || e.reason.message)) || JSON.stringify(e.reason)}`;
+  console.error(msg);
+  const bar = document.createElement("div");
+  bar.style.cssText = "position:fixed;left:10px;right:10px;bottom:10px;z-index:9999;background:#3a0d0f;color:#ffd2cf;border:1px solid #ff453a;border-radius:10px;padding:12px 36px 12px 14px;font:12px/1.5 monospace;white-space:pre-wrap;max-height:30vh;overflow:auto;cursor:pointer";
+  bar.title = "Клик чтобы закрыть";
+  bar.textContent = msg;
+  const close = document.createElement("span");
+  close.textContent = "✕";
+  close.style.cssText = "position:absolute;top:8px;right:14px;font-size:16px;color:#ffd2cf;cursor:pointer;font-family:sans-serif";
+  bar.style.position = "fixed";
+  bar.appendChild(close);
+  bar.onclick = () => bar.remove();
+  document.body.appendChild(bar);
+  if (window.MX?.springToast) window.MX.springToast(bar);
+  setTimeout(() => bar.remove(), 30000);
+});
+
+// Auth check
+const TOKEN = localStorage.getItem("token");
+if (!TOKEN) { window.location.href = "/login.html"; }
+
+const API = "/api";
+const authH = () => ({ "Content-Type":"application/json", "Authorization":"Bearer "+TOKEN });
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "/login.html";
+}
+
+let reviews=[],questions=[],logs=[],status=null,settings={};
+let tab="dash",editId=null,editType="review",cycleLoading=false;
+
+const api={
+  get:p=>fetch(API+p,{headers:authH()}).then(r=>{if(r.status===401)logout();return r.json();}),
+  post:(p,b)=>fetch(API+p,{method:"POST",headers:authH(),body:b?JSON.stringify(b):undefined}).then(r=>{if(r.status===401)logout();return r.json();}),
+  patch:(p,b)=>fetch(API+p,{method:"PATCH",headers:authH(),body:JSON.stringify(b)}).then(r=>{if(r.status===401)logout();return r.json();}),
+};
+
+const $=id=>document.getElementById(id);
+const st=(id,v)=>{const e=$(id);if(e&&e.textContent!==String(v))e.textContent=v;};
+const sh=(id,h)=>{const e=$(id);if(e)e.innerHTML=h;};
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);
+const escapeHtml=esc;
+const fmt=iso=>iso?new Date(iso).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+const stars=n=>[1,2,3,4,5].map(i=>`<span class="${i<=n?"son":"sof"}">★</span>`).join("");
+const sc=s=>s==="positive"?"tg":s==="negative"?"tr":"to";
+const SEMOJI={positive:"😊",negative:"😠",neutral:"😐"};
+const SLABEL={positive:"Позитивный",negative:"Негативный",neutral:"Нейтральный"};
+
+const TABS=["dash","rev","q","chat","log","set"];
+
+function setTab(t){
+  tab=t;
+  TABS.forEach(id=>{
+    const p=$("page-"+id);if(p){p.className="page stagger";p.style.display=id===t?"block":"none";}
+    const d=$("dtab-"+id);if(d)d.className="tab-btn"+(id===t?" on":"");
+    const b=$("bnav-"+id);if(b)b.className="bot-item"+(id===t?" on":"");
+  });
+  if(t==="dash")updateDash({refreshPreviews:true});
+  if(t==="rev"){updateFilterButtons("rev");renderRevList();}
+  if(t==="q"){updateFilterButtons("q");renderQList();}
+  if(t==="chat"){loadChats();updateChatFilterButtons();}
+  if(t==="log")renderLogs();
+  if(t==="set")loadS();
+  // Stagger fade-up для прямых детей активной страницы
+  requestAnimationFrame(()=>{
+    if(!window.MX)return;
+    const page=$("page-"+t);if(!page)return;
+    const kids=Array.from(page.children).filter(el=>el.offsetParent!==null);
+    if(kids.length)window.MX.staggerFadeUp(kids,{duration:.36,stagger:.04,distance:10});
+  });
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
+async function loadAll(){
+  try{
+    const[st2,rv,qs,lg,wbR,wbQ]=await Promise.all([
+      api.get("/status"),
+      api.get("/reviews"),
+      api.get("/questions"),
+      api.get("/logs"),
+      api.get("/wb-seller/reviews").catch(()=>({reviews:[]})),
+      api.get("/wb-seller/questions").catch(()=>({questions:[]})),
+    ]);
+    status=st2;
+    const ozonR=(rv.reviews||[]).map(r=>({...r,source:"ozon",_id:r.review_uuid,_text:r.text||"",_rating:r.rating||0,_created:r.published_at||r.created_at,_status:r.status||"pending",_ai:r.ai_response||"",_sent:r.sentiment||null,_sku:r.sku||"",_pname:r.product_name||""}));
+    const wbReviews=(wbR.reviews||[]).map(r=>({...r,source:"wb",_id:r.review_id,_text:r.text||"",_rating:r.rating||0,_created:r.created_at||r.created_locally_at,_status:r.status||"pending",_ai:r.ai_response||"",_sent:r.sentiment||(r.rating>=4?"positive":r.rating<=2?"negative":"neutral"),_sku:r.product?.nm_id||"",_pname:r.product?.name||""}));
+    reviews=[...ozonR,...wbReviews].sort((a,b)=>(new Date(b._created||0))-(new Date(a._created||0)));
+
+    const ozonQ=(qs.questions||[]).map(q=>({...q,source:"ozon",_id:q.question_id,_text:q.text||"",_created:q.published_at||q.created_at,_status:q.status_ai||"pending",_ai:q.ai_response||"",_sku:q.sku||"",_pname:""}));
+    const wbQs=(wbQ.questions||[]).map(q=>({...q,source:"wb",_id:q.question_id,_text:q.text||"",_created:q.created_at||q.created_locally_at,_status:q.status_ai||"pending",_ai:q.ai_response||"",_sku:q.product?.nm_id||"",_pname:q.product?.name||""}));
+    questions=[...ozonQ,...wbQs].sort((a,b)=>(new Date(b._created||0))-(new Date(a._created||0)));
+
+    logs=lg.logs||[];
+    updateHeader(st2);updateDash({refreshPreviews:tab==="dash"});
+    if(tab==="rev")renderRevList();
+    if(tab==="q")renderQList();
+    if(tab==="log")renderLogs();
+  }catch{updateHeader(null);}
+}
+
+async function loadS(){
+  try{
+    const s=await api.get("/settings");settings=s;
+    const ic=$("ic");if(ic&&!ic.matches(":focus"))ic.value=s.ozon_client_id||"";
+    const icr=$("icr");if(icr&&!icr.matches(":focus"))icr.value=s.cron_interval||"*/5 * * * *";
+    const ia=$("ia");if(ia)ia.checked=!!s.auto_post;
+    const kh=$("kh");if(kh)kh.textContent=s.ozon_api_key_set?`✓ (${s.ozon_api_key_hint})`:"";
+    const wkh=$("wkh");if(wkh)wkh.textContent=s.wb_api_key_set?`✓ (${s.wb_api_key_hint})`:"";
+    const orkh=$("orkh");if(orkh)orkh.textContent=s.openrouter_api_key_set?`✓ (${s.openrouter_api_key_hint})`:"";
+    await loadTones(s.ai_tone_preset||"friendly", s.ai_tone_custom||"");
+    await loadAiModels(s.ai_provider||"anthropic", s.ai_model||"");
+  }catch{}
+}
+
+let AI_MODELS_DATA=null;
+async function loadAiModels(currentProvider, currentModel){
+  try{
+    const r=await api.get("/ai/models");
+    AI_MODELS_DATA=r;
+    const wrap=$("ai-providers");if(!wrap)return;
+    wrap.innerHTML=(r.providers||[]).map(p=>`
+      <label data-prov="${p.id}" style="display:block;background:rgba(255,255,255,.03);border:1.5px solid ${p.id===currentProvider?"var(--primary)":"var(--line)"};border-radius:12px;padding:12px 14px;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <input type="radio" name="aiprov" value="${p.id}" ${p.id===currentProvider?"checked":""} style="margin:0">
+          <div style="font-size:13.5px;font-weight:700">${p.label}</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--t3);padding-left:22px">${p.requires_key}</div>
+      </label>`).join("");
+    wrap.querySelectorAll('input[name="aiprov"]').forEach(rd=>rd.addEventListener("change",()=>{
+      const id=rd.value;
+      wrap.querySelectorAll('[data-prov]').forEach(el=>el.style.borderColor=el.dataset.prov===id?"var(--primary)":"var(--line)");
+      $("openrouter-wrap").style.display=id==="openrouter"?"block":"none";
+      renderAiModelOptions(id, currentModel);
+    }));
+    $("openrouter-wrap").style.display=currentProvider==="openrouter"?"block":"none";
+    renderAiModelOptions(currentProvider, currentModel);
+  }catch{}
+}
+
+function renderAiModelOptions(provider, currentModel){
+  const sel=$("ai-model");if(!sel)return;
+  const list=(AI_MODELS_DATA?.models?.[provider])||[];
+  sel.innerHTML=list.map(m=>`<option value="${m.id}" ${m.id===currentModel?"selected":""}>${m.label}${m.note?" — "+m.note:""}</option>`).join("");
+  if(!list.find(m=>m.id===currentModel)&&currentModel){
+    const cm=$("ai-model-custom");if(cm)cm.value=currentModel;
+  }
+}
+
+async function testOR(){
+  const k=$("ork").value.trim();
+  const out=$("test-or");if(out)out.innerHTML='<div style="color:var(--t3);font-size:12px;margin-top:8px">⏳ Проверяю OpenRouter ключ…</div>';
+  try{
+    const r=await fetch(API+"/test-openrouter",{method:"POST",headers:authH(),body:JSON.stringify(k?{openrouter_api_key:k}:{})});
+    const j=await r.json();
+    if(!r.ok||j.ok===false){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">❌ ${esc(j.error||"Ошибка")}</div>`;}
+    else if(out)out.innerHTML=`<div style="color:var(--green);font-size:12px;margin-top:8px">✓ Ключ валиден. ${j.info?.label?'Label: '+esc(j.info.label)+'. ':''}Использовано $${esc(j.info?.usage??"—")}${j.info?.limit?(' / лимит $'+esc(j.info.limit)):''}</div>`;
+  }catch(e){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">❌ ${esc(e.message)}</div>`;}
+}
+
+async function previewTone(){
+  const out=$("tone-preview-out");
+  if(out)out.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">⏳ AI генерирует ответ с текущей тональностью…</div>';
+  try{
+    const r=await api.post("/ai/tone-preview",{text:"Товар пришёл повреждённый, коробка вмятая. Очень разочарован.",rating:2});
+    if(r.ok===false){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;padding:10px">❌ ${esc(r.error||"Ошибка")}</div>`;return;}
+    if(out)out.innerHTML=`
+      <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">Тестовый отзыв (рейтинг 2★)</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:10px;font-style:italic">«Товар пришёл повреждённый, коробка вмятая. Очень разочарован.»</div>
+        <div style="font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">AI ответ · ${esc(r.provider)} / ${esc(r.model)} · sentiment: ${esc(r.sentiment)}</div>
+        <div style="font-size:13px;color:var(--t1);line-height:1.6;background:var(--primary-soft);padding:12px 14px;border-radius:10px;border-left:3px solid var(--primary)">${esc(r.response||"(пусто)")}</div>
+      </div>`;
+  }catch(e){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;padding:10px">❌ ${esc(e.message)}</div>`;}
+}
+
+
+// ─── Chats ──────────────────────────────────────────────────────────────────
+let CHATS=[],CHAT_INTENTS={},CHAT_FILTER="all",CHAT_SHOW_SYSTEM=false,CURRENT_CHAT_ID=null,CURRENT_CHAT=null;
+
+function intentLabel(id){return CHAT_INTENTS[id]||id||"";}
+function intentBadge(intent){
+  if(!intent)return"";
+  const colors={pre_sales:"",post_sales:"",return:"orange",complaint:"red",conflict:"red",delivery:"",other:"gray"};
+  return `<span class="rs-badge ${colors[intent]||""}">${esc(intentLabel(intent))}</span>`;
+}
+
+function setChatFilter(f){CHAT_FILTER=f;updateChatFilterButtons();renderChatList();}
+function toggleSystemChats(){
+  CHAT_SHOW_SYSTEM=!!$("chat-show-system")?.checked;
+  loadChats(true);
+}
+function updateChatFilterButtons(){
+  document.querySelectorAll('[data-chat-f]').forEach(b=>{
+    const on=b.dataset.chatF===CHAT_FILTER;
+    b.style.background=on?"var(--primary)":"transparent";
+    b.style.color=on?"#fff":"var(--t1)";
+    b.style.borderColor=on?"var(--primary)":"var(--line)";
+  });
+}
+
+function chatBanner(text,kind){
+  const out=$("chats-debug-out");if(!out)return;
+  const color=kind==="err"?"var(--red)":kind==="warn"?"var(--orange)":"var(--green)";
+  const bg=kind==="err"?"rgba(255,69,58,.08)":kind==="warn"?"rgba(255,159,10,.08)":"rgba(48,209,88,.08)";
+  out.innerHTML=`<div style="padding:12px 40px 12px 14px;background:${bg};border-left:3px solid ${color};color:${color};border-radius:10px;font-size:13px;position:relative;line-height:1.5;white-space:pre-wrap">${esc(text)}<button onclick="document.getElementById('chats-debug-out').innerHTML=''" style="position:absolute;top:8px;right:10px;background:transparent;border:0;color:${color};cursor:pointer;font-size:16px;padding:2px 8px">✕</button></div>`;
+  if(window.MX?.springToast)window.MX.springToast(out.firstElementChild);
+  if(kind==="ok")setTimeout(()=>{const cur=$("chats-debug-out");if(!cur||!cur.firstElementChild)return;(window.MX?.springToastOut?window.MX.springToastOut(cur.firstElementChild):Promise.resolve()).then(()=>{cur.innerHTML="";});},8000);
+}
+
+async function loadChats(silent){
+  try{
+    // Показать skeleton при первой загрузке (если список пуст)
+    if(!silent && !CHATS.length && window.MX?.skeleton){
+      const w=$("chat-list");if(w)w.innerHTML=window.MX.skeleton("chat",6);
+    }
+    const url=`/chats?filter=${encodeURIComponent(CHAT_FILTER==="active"?"all":CHAT_FILTER)}${CHAT_SHOW_SYSTEM?"&include_system=1":""}`;
+    const j=await api.get(url);
+    CHATS=j.chats||[];CHAT_INTENTS=j.intents||{};
+    renderChatList();
+    const sub=$("chat-sub");if(sub){
+      const open=CHATS.filter(c=>!c.reply_window_expired).length;
+      sub.textContent=`Всего диалогов: ${CHATS.length} · можно ответить через API: ${open}`;
+    }
+    const dt=$("dtab-chat");if(dt)dt.textContent=CHATS.length?`💬 Чаты (${CHATS.length})`:`💬 Чаты`;
+    if(CURRENT_CHAT_ID){
+      const updated=CHATS.find(c=>c.chat_id===CURRENT_CHAT_ID);
+      if(updated && CURRENT_CHAT){Object.assign(CURRENT_CHAT,updated);updateChatHeader();}
+    }
+  }catch(e){chatBanner("❌ "+e.message,"err");}
+}
+
+function renderChatList(){
+  const wrap=$("chat-list");if(!wrap)return;
+  const search=String($("chat-search")?.value||"").trim().toLowerCase();
+  let list=CHATS;
+  if(CHAT_FILTER==="active")list=list.filter(c=>!c.reply_window_expired);
+  if(search)list=list.filter(c=>((c.customer_name||"")+" "+(c.last_message_text||"")).toLowerCase().includes(search));
+  if(!list.length){
+    wrap.innerHTML=`<div class="rs-empty" style="margin:14px">${CHATS.length?"По фильтру ничего нет":'Нет диалогов. Нажми «📥 Синхронизировать с Ozon».'}</div>`;
+    return;
+  }
+  wrap.innerHTML=list.map(c=>{
+    const active=c.chat_id===CURRENT_CHAT_ID;
+    const bg=active?"background:var(--panel-3)":"";
+    const border=active?"border-left:3px solid var(--primary)":"border-left:3px solid transparent";
+    const previewText=(c.last_message_text||"").trim();
+    const previewPrefix=c.last_message_from_seller?'<span style="color:var(--primary);font-weight:600">Вы: </span>':"";
+    const preview=previewText?previewPrefix+esc(previewText.slice(0,140)):'<span style="color:var(--t4)">(пустое сообщение)</span>';
+    const windowBadge=c.reply_window_expired
+      ? '<span class="rs-badge gray" title="Через API уже нельзя ответить">🕒 окно истекло</span>'
+      : (c.last_buyer_hours_ago!=null
+          ? `<span class="rs-badge green" title="Окно ответа открыто">⏱ осталось ${Math.max(1,48-c.last_buyer_hours_ago)}ч</span>`
+          : "");
+    return `<div onclick="openChat('${c.chat_id}')" style="padding:12px 14px;cursor:pointer;${bg};${border};border-bottom:1px solid var(--line)">
+      <div class="rs-row between" style="margin-bottom:4px">
+        <div style="font-size:13px;font-weight:700;color:var(--t1)">${esc(c.customer_name||"Покупатель")}</div>
+        ${c.unread_count?`<span class="rs-badge red">${c.unread_count}</span>`:(c.messages_count?`<span style="font-size:10px;color:var(--t3)">${c.messages_count} сообщ.</span>`:"")}
+      </div>
+      <div style="font-size:11.5px;color:var(--t2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${preview}</div>
+      <div class="rs-row" style="gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center">
+        ${c.escalated?'<span class="rs-badge red">🚨 на человека</span>':intentBadge(c.intent)}
+        ${c.has_draft?'<span class="rs-badge orange">📝 черновик</span>':""}
+        ${windowBadge}
+        <span style="margin-left:auto;font-size:10px;color:var(--t3)">${fmt(c.last_message_at)}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function openChat(chatId){
+  CURRENT_CHAT_ID=chatId;
+  document.querySelectorAll("#chat-list > div").forEach(el=>{
+    const sel=el.getAttribute("onclick")?.includes(chatId);
+    el.style.background=sel?"var(--panel-3)":"";
+    el.style.borderLeft=sel?"3px solid var(--primary)":"3px solid transparent";
+  });
+  const v=$("chat-view-content");if(v){
+    v.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:13px;padding:32px;min-height:0";
+    v.innerHTML='<div><span class="rs-spin" style="vertical-align:middle"></span> Загружаем диалог…</div>';
+  }
+  try{
+    const j=await api.get("/chats/"+encodeURIComponent(chatId));
+    if(j.ok===false)throw new Error(j.error||"err");
+    CURRENT_CHAT=j.chat;
+    renderChatView();
+  }catch(e){
+    if(v)v.innerHTML=`<div class="rs-error" style="margin:14px">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+function updateChatHeader(){
+  const h=$("chat-head-status");if(!h||!CURRENT_CHAT)return;
+  const c=CURRENT_CHAT;
+  h.innerHTML=`${c.escalated?'<span class="rs-badge red">🚨 требует менеджера</span>':intentBadge(c.intent)} ${c.reply_window_expired?'<span class="rs-badge gray">🕒 окно ответа истекло</span>':(c.last_buyer_hours_ago!=null?`<span class="rs-badge green">⏱ осталось ${Math.max(1,48-c.last_buyer_hours_ago)}ч</span>`:"")}`;
+  const esBtn=$("btn-chat-escalate");if(esBtn)esBtn.textContent=c.escalated?"Снять «на человека»":"🚨 Передать человеку";
+  const sendBtn=$("btn-chat-send");if(sendBtn){sendBtn.disabled=!!c.reply_window_expired;sendBtn.title=c.reply_window_expired?"Окно ответа Ozon истекло":"";}
+}
+
+function renderChatView(){
+  const v=$("chat-view-content");if(!v||!CURRENT_CHAT)return;
+  const c=CURRENT_CHAT;
+  const messages=(c.messages||[]).map(m=>{
+    const isSeller=m.is_from_seller;
+    const bg=isSeller?"background:var(--primary-soft);border:1px solid rgba(41,151,255,.2)":"background:var(--panel-2);border:1px solid var(--line)";
+    const align=isSeller?"flex-end":"flex-start";
+    return `<div style="display:flex;justify-content:${align};margin-bottom:8px">
+      <div style="max-width:75%;padding:10px 14px;border-radius:14px;${bg}">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:3px;font-weight:600">${isSeller?"Вы":esc(m.user_name||c.customer_name||"Покупатель")} · ${fmt(m.created_at)}</div>
+        <div style="font-size:13px;line-height:1.5;color:var(--t1);white-space:pre-wrap">${esc(m.text||"(пустое)")}</div>
+      </div>
+    </div>`;
+  }).join("");
+  v.style.cssText="flex:1;display:flex;flex-direction:column;padding:0;min-height:0;overflow:hidden";
+  v.innerHTML=`
+    <div style="padding:12px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0">
+      <div style="min-width:0">
+        <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(c.customer_name||"Покупатель")}</div>
+        <div style="font-size:11px;color:var(--t3);font-family:var(--mono)">Ozon · ${esc((c.chat_id||"").slice(0,12))}…</div>
+      </div>
+      <div class="rs-row" id="chat-head-status" style="flex-wrap:wrap"></div>
+    </div>
+    <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg);min-height:0">
+      ${messages||'<div class="rs-empty">Сообщений нет</div>'}
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid var(--line);background:var(--panel);flex-shrink:0">
+      <div id="chat-warn" style="margin-bottom:8px">${c.reply_window_expired?`<div style="font-size:12px;color:#ffd2cf;background:rgba(255,69,58,.10);border-left:3px solid var(--red);padding:8px 12px;border-radius:8px;line-height:1.5"><b>🕒 Окно ответа истекло.</b> Последнее сообщение покупателя ${c.last_buyer_hours_ago}ч назад. Ozon принимает ответы только в первые 48ч — ответьте в кабинете Ozon.</div>`:""}${c.internal_note?`<div style="font-size:11px;color:var(--orange);background:var(--orange-soft);border-left:3px solid var(--orange);padding:8px 12px;border-radius:8px;margin-top:8px"><b>📌 Заметка от AI:</b> ${esc(c.internal_note)}</div>`:""}</div>
+      <textarea id="chat-draft" class="rs" placeholder="Ваш ответ покупателю. Нажми «🤖 AI ответ» чтобы Claude сгенерировал черновик с учётом тональности из Settings." style="min-height:74px">${esc(c.ai_draft||"")}</textarea>
+      <div class="rs-row" style="margin-top:10px;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="rs-btn ghost" onclick="chatActionGen(event)" title="Сгенерировать ответ через AI с учётом контекста диалога">🤖 AI ответ</button>
+        <button class="rs-btn ghost" onclick="chatActionSave(event)" title="Сохранить черновик (без отправки в Ozon)">💾 Сохранить</button>
+        <button class="rs-btn ghost" id="btn-chat-escalate" onclick="chatActionEscalate()" title="Пометить как требующий живого менеджера — для конфликтов и претензий">🚨 Передать человеку</button>
+        <button class="rs-btn" id="btn-chat-send" onclick="chatActionSend()" style="margin-left:auto" title="Отправить текст из поля выше в чат Ozon">📤 Отправить в Ozon</button>
+      </div>
+    </div>`;
+  const m=$("chat-msgs");if(m)m.scrollTop=m.scrollHeight;
+  updateChatHeader();
+  // Анимация для самого последнего сообщения (если только что добавили)
+  if(window.MX?.fadeInMessage){
+    const items=m?.querySelectorAll(":scope > div");
+    if(items&&items.length){
+      const last=items[items.length-1];
+      if(last && last.dataset.mxAnimated!=="1"){
+        last.dataset.mxAnimated="1";
+        window.MX.fadeInMessage(last);
+      }
+    }
+  }
+}
+
+function applyChatResponse(updated){
+  if(!updated)return;
+  CURRENT_CHAT=updated;
+  const idx=CHATS.findIndex(c=>c.chat_id===updated.chat_id);
+  if(idx>=0){
+    const lastMsg=(updated.messages||[]).slice(-1)[0];
+    CHATS[idx]={...CHATS[idx],...updated,
+      has_draft:!!updated.ai_draft,
+      messages_count:(updated.messages||[]).length,
+      last_message_text:lastMsg?.text||CHATS[idx].last_message_text,
+      last_message_from_seller:lastMsg?lastMsg.is_from_seller:CHATS[idx].last_message_from_seller,
+      last_message_at:lastMsg?.created_at||CHATS[idx].last_message_at,
+    };
+  }
+  renderChatList();
+  renderChatView();
+}
+
+async function chatActionGen(ev){
+  if(!CURRENT_CHAT_ID)return;
+  const btn=ev?.target;if(btn){btn.disabled=true;btn.innerHTML='<span class="rs-spin"></span> AI пишет…';}
+  try{
+    const j=await api.post("/chats/"+encodeURIComponent(CURRENT_CHAT_ID)+"/generate",{});
+    if(j.ok===false)throw new Error(j.error||"err");
+    applyChatResponse(j.chat);
+  }catch(e){chatBanner("❌ "+e.message,"err");}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='🤖 AI ответ';}}
+}
+
+async function chatActionSave(ev){
+  if(!CURRENT_CHAT_ID)return;
+  const text=$("chat-draft")?.value??"";
+  const btn=ev?.target;if(btn){btn.disabled=true;}
+  try{
+    const j=await api.patch("/chats/"+encodeURIComponent(CURRENT_CHAT_ID),{ai_draft:text});
+    if(j.ok===false)throw new Error(j.error||"err");
+    applyChatResponse(j.chat);
+    chatBanner("✓ Черновик сохранён","ok");
+  }catch(e){chatBanner("❌ "+e.message,"err");}
+  finally{if(btn)btn.disabled=false;}
+}
+
+async function chatActionEscalate(){
+  if(!CURRENT_CHAT_ID||!CURRENT_CHAT)return;
+  const next=!CURRENT_CHAT.escalated;
+  CURRENT_CHAT.escalated=next;updateChatHeader();
+  const idx=CHATS.findIndex(c=>c.chat_id===CURRENT_CHAT_ID);if(idx>=0)CHATS[idx].escalated=next;
+  renderChatList();
+  try{
+    const j=await api.post("/chats/"+encodeURIComponent(CURRENT_CHAT_ID)+"/escalate",{escalated:next});
+    if(j.ok===false)throw new Error(j.error||"err");
+    applyChatResponse(j.chat);
+  }catch(e){
+    CURRENT_CHAT.escalated=!next;updateChatHeader();
+    if(idx>=0)CHATS[idx].escalated=!next;renderChatList();
+    chatBanner("❌ "+e.message,"err");
+  }
+}
+
+let CHAT_SEND_CONFIRM=false,CHAT_SEND_TIMER=null;
+async function chatActionSend(){
+  if(!CURRENT_CHAT_ID)return;
+  const text=($("chat-draft")?.value||"").trim();
+  if(!text){chatBanner("Введи или сгенерируй текст ответа","warn");return;}
+  const btn=$("btn-chat-send");if(!btn)return;
+  if(!CHAT_SEND_CONFIRM){
+    CHAT_SEND_CONFIRM=true;
+    btn.innerHTML='Точно отправить? нажми ещё раз ✓';
+    btn.style.background="var(--orange)";
+    btn.style.borderColor="var(--orange)";
+    btn.style.boxShadow="0 4px 14px rgba(255,159,10,.4)";
+    if(window.MX?.pulseConfirm)window.MX.pulseConfirm(btn);
+    clearTimeout(CHAT_SEND_TIMER);
+    CHAT_SEND_TIMER=setTimeout(()=>{
+      CHAT_SEND_CONFIRM=false;
+      btn.innerHTML='📤 Отправить в Ozon';
+      btn.style.background="";btn.style.borderColor="";btn.style.boxShadow="";
+    },4000);
+    return;
+  }
+  clearTimeout(CHAT_SEND_TIMER);CHAT_SEND_CONFIRM=false;
+  btn.style.background="";btn.style.borderColor="";btn.style.boxShadow="";
+  btn.disabled=true;btn.innerHTML='<span class="rs-spin"></span> Отправляем…';
+  try{
+    const j=await api.post("/chats/"+encodeURIComponent(CURRENT_CHAT_ID)+"/send",{text});
+    if(j.ok===false)throw new Error(j.error||"err");
+    applyChatResponse(j.chat);
+    chatBanner("✓ Отправлено в Ozon","ok");
+  }catch(e){chatBanner("❌ "+e.message,"err");}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='📤 Отправить в Ozon';}}
+}
+
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="btn-chats-reload"){loadChats();}
+  if(e.target.id==="btn-chats-sync"){
+    const btn=e.target;btn.disabled=true;const orig=btn.innerHTML;btn.innerHTML='<span class="rs-spin"></span> Синхронизируем…';
+    api.post("/chats/sync",{}).then(j=>{
+      if(j.ok===false){chatBanner("❌ "+(j.error||"Ошибка синхронизации"),"err");return;}
+      if(j.skipped){chatBanner("⚠️ Ozon Chat API недоступен на текущей подписке.","warn");return;}
+      setTab("chat");
+      loadChats();
+      const parts=[];
+      if(typeof j.chats_local==="number")parts.push(`Всего: ${j.chats_local}`);
+      if(j.updated)parts.push(`+${j.updated} новых`);
+      if(j.new_messages)parts.push(`+${j.new_messages} сообщ.`);
+      chatBanner(`✓ ${parts.join(" · ")}${j.warning?"\n⚠️ "+j.warning:""}`, j.warning?"warn":"ok");
+    }).catch(er=>chatBanner("❌ "+er.message,"err")).finally(()=>{btn.disabled=false;btn.innerHTML=orig;});
+  }
+  if(e.target.id==="btn-chats-debug"){
+    const btn=e.target;btn.disabled=true;const orig=btn.innerHTML;btn.innerHTML='<span class="rs-spin"></span> Запрашиваем…';
+    api.post("/chats/debug",{status:"All",limit:5}).then(j=>{
+      const close='<button onclick="document.getElementById(\'chats-debug-out\').innerHTML=\'\'" style="float:right;background:transparent;border:1px solid var(--line);color:var(--t2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px">✕</button>';
+      const out=$("chats-debug-out");
+      if(j.ok===false){out.innerHTML=`<div class="rs-error">${close}❌ ${esc(j.error||"err")}<br><pre style="margin-top:8px;color:var(--t3);max-height:300px;overflow:auto;font-size:11px">${esc(JSON.stringify(j.payload||{}, null, 2))}</pre></div>`;return;}
+      const keys=(j.first_chat_keys||[]).join(", ");
+      out.innerHTML=`<div class="rs-panel" style="padding:14px">${close}<div style="font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:10px">🔍 Сырой ответ Ozon</div><div style="font-size:13px;margin-bottom:8px">Найдено чатов: <b style="color:${j.detected_chats_count>0?"var(--green)":"var(--red)"}">${j.detected_chats_count}</b></div>${keys?`<div style="font-size:12px;color:var(--t2);margin-bottom:8px">Поля первого чата: <code style="background:var(--panel-2);padding:2px 6px;border-radius:4px;font-size:11px">${esc(keys)}</code></div>`:""}<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--t2);font-size:12px">Полный ответ JSON</summary><pre style="margin-top:8px;max-height:400px;overflow:auto;background:var(--bg);padding:12px;border-radius:8px;font-size:11px;color:var(--t2)">${esc(JSON.stringify(j.raw_response,null,2))}</pre></details></div>`;
+    }).catch(er=>chatBanner("❌ "+er.message,"err")).finally(()=>{btn.disabled=false;btn.innerHTML=orig;});
+  }
+});
+
+let TONES=[];
+async function loadTones(currentId, customText){
+  try{
+    const r=await api.get("/tone/presets");
+    TONES=r.presets||[];
+    const wrap=$("tone-list");if(!wrap)return;
+    wrap.innerHTML=TONES.map(p=>`
+      <label style="display:block;background:rgba(255,255,255,.03);border:1.5px solid ${p.id===currentId?"var(--blue)":"var(--b1)"};border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .15s" data-tone="${p.id}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <input type="radio" name="tone" value="${p.id}" ${p.id===currentId?"checked":""} style="margin:0;cursor:pointer">
+          <div style="font-size:13.5px;font-weight:700;color:var(--t1)">${p.label}</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--t3);line-height:1.5;padding-left:22px">${p.description}</div>
+      </label>`).join("");
+    const customWrap=$("tone-custom-wrap");
+    const customInput=$("tone-custom");
+    if(customInput && !customInput.matches(":focus"))customInput.value=customText||"";
+    if(customWrap)customWrap.style.display=currentId==="custom"?"block":"none";
+    wrap.querySelectorAll('input[name="tone"]').forEach(r=>{
+      r.addEventListener("change", ()=>{
+        const id=r.value;
+        wrap.querySelectorAll('[data-tone]').forEach(el=>{el.style.borderColor=el.dataset.tone===id?"var(--blue)":"var(--b1)"});
+        if(customWrap)customWrap.style.display=id==="custom"?"block":"none";
+      });
+    });
+  }catch{}
+}
+
+async function testW(){
+  const wk=$("wk").value.trim();
+  const out=$("test-w");if(out)out.innerHTML='<div style="color:var(--t3);font-size:12px;margin-top:8px">⏳ Проверяю WB ключ…</div>';
+  try{
+    const body=wk?{wb_api_key:wk}:{};
+    const r=await fetch(API+"/test-wb",{method:"POST",headers:authH(),body:JSON.stringify(body)});
+    const j=await r.json();
+    if(!r.ok||j.ok===false){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">❌ ${esc(j.error||"Ошибка")}</div>`;}
+    else if(out)out.innerHTML=`<div style="color:var(--green);font-size:12px;margin-top:8px">✓ Ключ валиден. Без ответа: ${esc(j.unanswered??"—")}</div>`;
+  }catch(e){if(out)out.innerHTML=`<div style="color:var(--red);font-size:12px;margin-top:8px">❌ ${esc(e.message)}</div>`;}
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+function updateHeader(st2){
+  const ok=st2!==null;
+  const orb=$("srv-orb"),txt=$("srv-txt");
+  if(orb)orb.className="orb "+(ok?"orb-green":"orb-red");
+  if(txt)txt.textContent=ok?"Сервер работает":"Нет соединения";
+  $("offline-bar").style.display=ok?"none":"block";
+  if(st2){
+    const cc=$("cron-chip");if(cc)cc.style.display="flex";
+    st("cron-txt",st2.cronSchedule);
+    const btn=$("cycle-btn");
+    if(btn){btn.disabled=cycleLoading||st2.cycleRunning;btn.textContent=(cycleLoading||st2.cycleRunning)?"⏳":"▶ Цикл";}
+  }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function computeStats(){
+  const total=reviews.length;
+  const pos=reviews.filter(r=>r._sent==="positive").length;
+  const neg=reviews.filter(r=>r._sent==="negative").length;
+  const neu=reviews.filter(r=>r._sent==="neutral").length;
+  const posted=reviews.filter(r=>r._status==="posted").length;
+  const ready=reviews.filter(r=>r._status==="ready").length;
+  const pending=reviews.filter(r=>r._status==="pending").length;
+  const qTotal=questions.length;
+  const qPosted=questions.filter(q=>q._status==="posted").length;
+  const qReady=questions.filter(q=>q._status==="ready").length;
+  const qPending=questions.filter(q=>q._status==="pending").length;
+  const ozonR=reviews.filter(r=>r.source==="ozon").length;
+  const wbR=reviews.filter(r=>r.source==="wb").length;
+  const ozonQ=questions.filter(q=>q.source==="ozon").length;
+  const wbQ=questions.filter(q=>q.source==="wb").length;
+  return {total,pos,neg,neu,posted,ready,pending,qTotal,qPosted,qReady,qPending,ozonR,wbR,ozonQ,wbQ};
+}
+
+function updateDash(options={}){
+  if(!status)return;
+  const refreshPreviews=options.refreshPreviews!==false;
+  const s=computeStats();
+  const setKpi=(id,v)=>{const el=$(id);if(!el)return;if(window.MX?.animateNumber)window.MX.animateNumber(el,v);else st(id,v);};
+  setKpi("kv-rtotal",s.total);setKpi("kv-rpos",s.pos);setKpi("kv-rneg",s.neg);setKpi("kv-qtotal",s.qTotal);
+  st("kd-rtotal",`Ozon ${s.ozonR} · WB ${s.wbR}`);
+  st("kd-rpos",s.total?`${Math.round(s.pos/s.total*100)}% от всех`:"—");
+  st("kd-rneg",s.total?`${Math.round(s.neg/s.total*100)}% от всех`:"—");
+  st("kd-qtotal",`Ozon ${s.ozonQ} · WB ${s.wbQ}`);
+  setKpi("ms-pend",s.pending+s.qPending);
+  setKpi("ms-ready",s.ready+s.qReady);
+  setKpi("ms-posted",s.posted+s.qPosted);
+  st("ms-cycle",status.lastCycle?fmt(status.lastCycle):"—");
+
+  // Tab labels
+  const dr=$("dtab-rev");if(dr)dr.textContent=`Отзывы (${reviews.length})`;
+  const dq=$("dtab-q");if(dq)dq.textContent=`Вопросы (${questions.length})`;
+  const dl=$("dtab-log");if(dl)dl.textContent=`Лог (${logs.length})`;
+
+  const sb=$("sbar");
+  if(sb&&s.total>0)sb.innerHTML=`
+    ${s.pos>0?`<div class="sb-g" style="flex:${s.pos}"></div>`:""}
+    ${s.neu>0?`<div class="sb-o" style="flex:${s.neu}"></div>`:""}
+    ${s.neg>0?`<div class="sb-r" style="flex:${s.neg}"></div>`:""}`;
+
+  if(!refreshPreviews){
+    const rsub=$("rev-sub");if(rsub)rsub.textContent=`Всего ${reviews.length} (Ozon ${s.ozonR} · WB ${s.wbR}) · ${s.posted} с ответом`;
+    const qsub=$("q-sub");if(qsub)qsub.textContent=`Всего ${questions.length} (Ozon ${s.ozonQ} · WB ${s.wbQ}) · ${s.qPosted} с ответом`;
+    return;
+  }
+
+  // Recent (объединённый источник)
+  const rr=$("recent-rev");
+  if(rr)rr.innerHTML=!reviews.length
+    ?`<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Запустите цикл — появятся отзывы из Ozon и WB</div>`
+    :reviews.slice(0,5).map(r=>`
+      <div class="flex" style="gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="font-size:15px;flex-shrink:0;width:18px">${r._sent==="positive"?"😊":r._sent==="negative"?"😠":"😐"}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">
+            ${srcBadge(r.source)}
+            <span style="font-size:11px;color:var(--t3)">${r.author||r.user_name||""} · ${fmt(r._created)}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--t2);line-height:1.45">${(r._text||"(без текста)").slice(0,80)}${(r._text||"").length>80?"…":""}</div>
+        </div>
+      </div>`).join("");
+
+  const rq=$("recent-q");
+  if(rq)rq.innerHTML=!questions.length
+    ?`<div style="text-align:center;padding:24px;color:var(--t3);font-size:13px">Нет вопросов</div>`
+    :questions.slice(0,5).map(q=>`
+      <div class="flex" style="gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="font-size:15px;flex-shrink:0;width:18px">❓</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">
+            ${srcBadge(q.source)}
+            <span style="font-size:11px;color:var(--t3)">${q.author||q.user_name||""} · ${fmt(q._created)}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--t1);line-height:1.45;font-weight:500">${(q._text||"").slice(0,80)}${(q._text||"").length>80?"…":""}</div>
+        </div>
+        ${q._status==="posted"?`<span class="rs-badge green">✓</span>`:q._status==="ready"?`<span class="rs-badge">готов</span>`:""}
+      </div>`).join("");
+
+  const rsub=$("rev-sub");if(rsub)rsub.textContent=`Всего ${reviews.length} (Ozon ${s.ozonR} · WB ${s.wbR}) · ${s.posted} с ответом`;
+  const qsub=$("q-sub");if(qsub)qsub.textContent=`Всего ${questions.length} (Ozon ${s.ozonQ} · WB ${s.wbQ}) · ${s.qPosted} с ответом`;
+}
+
+// ── Review / Question lists ───────────────────────────────────────────────────
+let REV_FILTER={src:"all",st:"all"};
+let Q_FILTER={src:"all",st:"all"};
+
+function setRevFilter(kind, value){REV_FILTER[kind]=value; updateFilterButtons("rev"); renderRevList();}
+function setQFilter(kind, value){Q_FILTER[kind]=value; updateFilterButtons("q"); renderQList();}
+function updateFilterButtons(prefix){
+  const f=prefix==="rev"?REV_FILTER:Q_FILTER;
+  document.querySelectorAll(`[data-${prefix}-src]`).forEach(b=>{
+    const on=b.dataset[`${prefix}Src`]===f.src;
+    b.style.background=on?"var(--primary)":"transparent";
+    b.style.color=on?"#fff":"var(--t1)";
+    b.style.borderColor=on?"var(--primary)":"var(--line)";
+  });
+  document.querySelectorAll(`[data-${prefix}-st]`).forEach(b=>{
+    const on=b.dataset[`${prefix}St`]===f.st;
+    b.style.background=on?"var(--primary)":"transparent";
+    b.style.color=on?"#fff":"var(--t1)";
+    b.style.borderColor=on?"var(--primary)":"var(--line)";
+  });
+}
+
+function srcBadge(src){
+  return src==="wb"
+    ? `<span class="rs-badge purple">WB</span>`
+    : `<span class="rs-badge">Ozon</span>`;
+}
+function statusBadgeRev(s){
+  if(s==="posted") return `<span class="rs-badge green">✓ опубликован</span>`;
+  if(s==="ready") return `<span class="rs-badge">готов</span>`;
+  if(s==="pending") return `<span class="rs-badge orange">ожидает</span>`;
+  if(s==="error") return `<span class="rs-badge red">ошибка</span>`;
+  return `<span class="rs-badge gray">${s||""}</span>`;
+}
+function renderRevList(){
+  const el=$("rev-list");if(!el)return;
+  const search=String($("rev-search")?.value||"").trim().toLowerCase();
+  const f=REV_FILTER;
+  const filtered=reviews.filter(r=>{
+    if(f.src!=="all"&&r.source!==f.src)return false;
+    if(f.st!=="all"&&r._status!==f.st)return false;
+    if(search){
+      const hay=(r._text+" "+(r._pname||"")+" "+(r.author||r.user_name||"")).toLowerCase();
+      if(!hay.includes(search))return false;
+    }
+    return true;
+  });
+  if(!filtered.length){
+    if(!reviews.length)el.innerHTML=`<div class="rs-empty">Отзывы появятся после запуска цикла. Настрой ключи в Settings и нажми «Запустить цикл».</div>`;
+    else el.innerHTML=`<div class="rs-empty">По фильтру ничего не найдено — попробуй сбросить.</div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(r=>{
+    const id=r._id, src=r.source, st=r._status, ai=r._ai, txt=r._text, prodLine=r._pname?`<div style="margin-top:6px;color:var(--t3);font-size:11.5px">${r._pname}${r._sku?` · ${src==="wb"?"nm":"sku"} ${r._sku}`:""}</div>`:"";
+    const actions = [];
+    if(st==="ready"){
+      actions.push(`<button class="rs-btn icon" onclick="postR('${id}','${src}')">📤 Опубликовать</button>`);
+      actions.push(`<button class="rs-btn ghost icon" onclick="openM('${id}',\`${ai.replace(/`/g,"'").replace(/\\/g,"\\\\")}\`,'review','${src}')">✏️ Изменить</button>`);
+    }
+    if(st==="pending"||st==="error"){
+      actions.push(`<button class="rs-btn ghost icon" onclick="regenR('${id}','${src}')">🤖 Сгенерировать AI</button>`);
+    }
+    if(st==="posted"){
+      actions.push(`<button class="rs-btn ghost icon" onclick="regenR('${id}','${src}')">🔁 Перегенерировать</button>`);
+    }
+    return `<div class="rs-card" style="margin-bottom:10px">
+      <div class="rs-row between" style="margin-bottom:10px">
+        <div class="rs-row">
+          ${srcBadge(src)}
+          <span class="stars">${stars(r._rating)}</span>
+          <span style="font-size:12.5px;font-weight:600;color:var(--t2)">${r.author||r.user_name||"Аноним"}</span>
+          <span style="font-size:11.5px;color:var(--t3)">${fmt(r._created)}</span>
+        </div>
+        <div class="rs-row">
+          ${r._sent?`<span class="rs-badge ${r._sent==="positive"?"green":r._sent==="negative"?"red":"orange"}">${r._sent==="positive"?"😊":r._sent==="negative"?"😠":"😐"} ${SLABEL[r._sent]||""}</span>`:""}
+          ${statusBadgeRev(st)}
+        </div>
+      </div>
+      <div style="font-size:13.5px;color:var(--t1);line-height:1.6">${txt?txt:"<em style='color:var(--t3)'>Без текста</em>"}</div>
+      ${r.pros?`<div style="margin-top:6px;font-size:12.5px;color:var(--t2)"><b>Плюсы:</b> ${r.pros}</div>`:""}
+      ${r.cons?`<div style="margin-top:4px;font-size:12.5px;color:var(--t2)"><b>Минусы:</b> ${r.cons}</div>`:""}
+      ${prodLine}
+      ${ai?`<div style="margin-top:10px;padding:12px 14px;background:var(--primary-soft);border-left:3px solid var(--primary);border-radius:10px"><div style="font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">AI-ответ</div><div style="font-size:13px;line-height:1.6;color:var(--t1)">${ai}</div></div>`:""}
+      <div class="rs-row" style="margin-top:12px;gap:8px;flex-wrap:wrap">${actions.join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderQList(){
+  const el=$("q-list");if(!el)return;
+  const search=String($("q-search")?.value||"").trim().toLowerCase();
+  const f=Q_FILTER;
+  const filtered=questions.filter(q=>{
+    if(f.src!=="all"&&q.source!==f.src)return false;
+    if(f.st!=="all"&&q._status!==f.st)return false;
+    if(search){
+      const hay=(q._text+" "+(q._pname||"")+" "+(q.author||q.user_name||"")).toLowerCase();
+      if(!hay.includes(search))return false;
+    }
+    return true;
+  });
+  if(!filtered.length){
+    if(!questions.length)el.innerHTML=`<div class="rs-empty">Вопросы появятся после запуска цикла.</div>`;
+    else el.innerHTML=`<div class="rs-empty">По фильтру ничего не найдено.</div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(q=>{
+    const id=q._id, src=q.source, st=q._status, ai=q._ai, txt=q._text;
+    const prodLine=q._pname||q._sku?`<div style="margin-top:6px;color:var(--t3);font-size:11.5px">${q._pname||""}${q._sku?` · ${src==="wb"?"nm":"sku"} ${q._sku}`:""}</div>`:"";
+    const actions=[];
+    if(st==="ready"){
+      actions.push(`<button class="rs-btn icon" onclick="postQ('${id}','${src}')">📤 Опубликовать</button>`);
+      actions.push(`<button class="rs-btn ghost icon" onclick="openM('${id}',\`${ai.replace(/`/g,"'").replace(/\\/g,"\\\\")}\`,'question','${src}')">✏️ Изменить</button>`);
+    }
+    if(st==="pending"||st==="error"){
+      actions.push(`<button class="rs-btn ghost icon" onclick="regenQ('${id}','${src}')">🤖 Сгенерировать AI</button>`);
+    }
+    if(st==="posted"){
+      actions.push(`<button class="rs-btn ghost icon" onclick="regenQ('${id}','${src}')">🔁 Перегенерировать</button>`);
+    }
+    return `<div class="rs-card" style="margin-bottom:10px">
+      <div class="rs-row between" style="margin-bottom:10px">
+        <div class="rs-row">
+          ${srcBadge(src)}
+          <span style="font-size:13px;font-weight:600;color:var(--t2)">${q.author||q.user_name||"Покупатель"}</span>
+          <span style="font-size:11.5px;color:var(--t3)">${fmt(q._created)}</span>
+        </div>
+        <div class="rs-row">
+          ${statusBadgeRev(st)}
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:600;line-height:1.55;color:var(--t1)">${txt}</div>
+      ${prodLine}
+      ${q.product_url?`<a href="${q.product_url}" target="_blank" style="display:inline-block;margin-top:6px;font-size:11.5px;color:var(--primary)">🔗 ${q.product_url.slice(0,55)}…</a>`:""}
+      ${ai?`<div style="margin-top:10px;padding:12px 14px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px"><div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">AI-ответ</div><div style="font-size:13px;line-height:1.6;color:var(--t1)">${ai}</div></div>`:""}
+      <div class="rs-row" style="margin-top:12px;gap:8px;flex-wrap:wrap">${actions.join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderLogs(){
+  const lb=$("logbox");if(!lb)return;
+  const atBot=lb.scrollHeight-lb.scrollTop-lb.clientHeight<60;
+  lb.innerHTML=!logs.length?`<div style="color:#2a2a40;text-align:center;padding-top:60px">Лог пуст</div>`
+    :logs.map(l=>`<div><span class="lt">${fmt(l.created_at)}</span><span class="${l.type==="success"?"ls":l.type==="error"?"le":l.type==="warn"?"lw":"li"}">${l.message}</span></div>`).join("");
+  if(atBot)lb.scrollTop=lb.scrollHeight;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+async function runCycle(){
+  cycleLoading=true;
+  const btn=$("cycle-btn");if(btn){btn.disabled=true;btn.textContent="⏳";}
+  const note=$("cycle-note");
+  if(note){
+    note.style.display="block";
+    note.style.background="rgba(41,151,255,.08)";
+    note.style.border="1px solid rgba(41,151,255,.16)";
+    note.style.color="var(--blue)";
+    note.textContent="Запускаю цикл: проверяю Ozon и готовлю ответы...";
+  }
+  try{
+    const res=await api.post("/cycle");
+    await loadAll();
+    showCycleResult(res);
+  }catch(e){
+    if(note){
+      note.style.display="block";
+      note.style.background="rgba(255,69,58,.08)";
+      note.style.border="1px solid rgba(255,69,58,.18)";
+      note.style.color="var(--red)";
+      note.textContent="Цикл не запустился: "+(e.message||"неизвестная ошибка");
+    }
+  }finally{
+    cycleLoading=false;
+    const btn=$("cycle-btn");if(btn){btn.disabled=false;btn.textContent="▶ Цикл";}
+  }
+}
+function showCycleResult(res){
+  const note=$("cycle-note");if(!note)return;
+  const results=res?.results||{};
+  const rv=results.reviews||{},qs=results.questions||{};
+  const warnings=[];
+  if(rv.skipped)warnings.push("Отзывы не загрузились: Ozon не дает ReviewList на текущей подписке.");
+  if(qs.skipped)warnings.push("Вопросы не загрузились: Ozon не дает QuestionList на текущей подписке.");
+  if(results.error)warnings.push(results.error);
+  const pieces=[
+    rv.skipped?"Отзывы: недоступны":`Отзывы: обработано ${rv.processed||0}, опубликовано ${rv.posted||0}, ошибок ${rv.errors||0}`,
+    qs.skipped?"Вопросы: недоступны":`Вопросы: обработано ${qs.processed||0}, опубликовано ${qs.posted||0}, ошибок ${qs.errors||0}`,
+  ];
+  note.style.display="block";
+  note.style.background=warnings.length?"rgba(255,159,10,.10)":"rgba(48,209,88,.09)";
+  note.style.border=warnings.length?"1px solid rgba(255,159,10,.22)":"1px solid rgba(48,209,88,.18)";
+  note.style.color=warnings.length?"var(--orange)":"var(--green)";
+  note.innerHTML=`<div>${pieces.map(escapeHtml).join(" · ")}</div>${warnings.length?`<div style="margin-top:6px">${warnings.map(escapeHtml).join("<br>")}</div>`:""}`;
+}
+async function postR(u, source){
+  const path=source==="wb"?`/wb-seller/reviews/${encodeURIComponent(u)}/post`:`/reviews/${u}/post`;
+  const res=await api.post(path);
+  if(!res?.ok){
+    alert(res?.error||"Не удалось опубликовать ответ на отзыв");
+    await loadAll();
+    return;
+  }
+  await loadAll();
+}
+async function regenR(u, source){
+  const path=source==="wb"?`/wb-seller/reviews/${encodeURIComponent(u)}/generate`:`/reviews/${u}/regenerate`;
+  await api.post(path);
+  await loadAll();
+}
+async function postQ(i, source){
+  const path=source==="wb"?`/wb-seller/questions/${encodeURIComponent(i)}/post`:`/questions/${i}/post`;
+  const res=await api.post(path);
+  if(!res?.ok){
+    alert(res?.error||"Не удалось опубликовать ответ на вопрос");
+    await loadAll();
+    return;
+  }
+  await loadAll();
+}
+async function regenQ(i, source){
+  const path=source==="wb"?`/wb-seller/questions/${encodeURIComponent(i)}/generate`:`/questions/${i}/regenerate`;
+  await api.post(path);
+  await loadAll();
+}
+
+let editSource="ozon";
+function openM(id,text,type,source){
+  editId=id;editType=type;editSource=source||"ozon";
+  $("m-title").textContent=type==="question"?"Редактировать ответ на вопрос":"Редактировать AI-ответ";
+  $("m-sub").textContent=(source==="wb"?"Wildberries":"Ozon")+" · "+(type==="question"?"Ответ продавца":"Комментарий к отзыву");
+  $("m-text").value=text;
+  $("modal").style.display="flex";
+}
+function closeM(){$("modal").style.display="none";editId=null;}
+async function saveEdit(){
+  const t=$("m-text").value;
+  const isReview=editType==="review";
+  const isWb=editSource==="wb";
+  const path=isReview
+    ? (isWb?`/wb-seller/reviews/${encodeURIComponent(editId)}`:`/reviews/${editId}`)
+    : (isWb?`/wb-seller/questions/${encodeURIComponent(editId)}`:`/questions/${editId}`);
+  await api.patch(path,{ai_response:t});
+  closeM();await loadAll();
+}
+
+async function saveS(){
+  const body={ozon_client_id:$("ic").value,auto_post:String($("ia").checked),cron_interval:$("icr").value};
+  const key=$("ik").value;if(key)body.ozon_api_key=key;
+  const wk=$("wk")?.value;if(wk)body.wb_api_key=wk;
+  const ork=$("ork")?.value;if(ork)body.openrouter_api_key=ork;
+  const prov=document.querySelector('input[name="aiprov"]:checked');
+  if(prov)body.ai_provider=prov.value;
+  const customModel=$("ai-model-custom")?.value?.trim();
+  if(customModel)body.ai_model=customModel;
+  else if($("ai-model"))body.ai_model=$("ai-model").value;
+  const checkedTone=document.querySelector('input[name="tone"]:checked');
+  if(checkedTone)body.ai_tone_preset=checkedTone.value;
+  const tc=$("tone-custom")?.value;if(tc!==undefined)body.ai_tone_custom=tc;
+  await api.post("/settings",body);
+  $("ik").value="";if($("wk"))$("wk").value="";if($("ork"))$("ork").value="";if($("ai-model-custom"))$("ai-model-custom").value="";
+  await loadS();
+}
+
+async function testO(){
+  const el=$("test-r");el.textContent="Тестирование…";
+  try{
+    const body={ozon_client_id:$("ic").value};
+    const key=$("ik").value.trim();
+    if(key)body.ozon_api_key=key;
+    const r=await api.post("/test-ozon",body);
+    const reviewsText=r.reviews===null||r.reviews===undefined?"недоступно":r.reviews;
+    const questionsText=r.questions===null||r.questions===undefined?"недоступно":r.questions;
+    const warnings=Array.isArray(r.warnings)&&r.warnings.length
+      ? `<div style="margin-top:8px;color:var(--orange);font-weight:600">${r.warnings.map(escapeHtml).join("<br>")}</div>`
+      : "";
+    el.innerHTML=`<div style="padding:10px 12px;border-radius:var(--rxs);font-size:12px;font-weight:600;background:${r.ok?"rgba(48,209,88,.08)":"rgba(255,69,58,.08)"};border:1px solid ${r.ok?"rgba(48,209,88,.2)":"rgba(255,69,58,.2)"};color:${r.ok?"var(--green)":"var(--red)"};margin-top:10px">${r.ok?`✅ Подключено! Отзывов: ${reviewsText} · Вопросов: ${questionsText}${warnings}`:`❌ ${escapeHtml(r.error||"Ошибка подключения")}`}</div>`;
+  }catch(e){el.textContent="Ошибка: "+e.message;}
+}
+
+function clogs(){logs=[];renderLogs();}
+
+(async function initApp(){
+  try{
+    const res = await fetch(API + "/auth/me", { headers: authH() });
+    if (!res.ok) {
+      logout();
+      return;
+    }
+  }catch(_){
+    logout();
+    return;
+  }
+  loadAll();
+  loadS();
+  loadChats(true);
+  // Легкий polling - только статус каждые 15 сек
+  setInterval(async () => {
+    try {
+      const st = await api.get("/status");
+      status = st;
+      updateHeader(st);
+      if(tab==="dash")updateDash({refreshPreviews:false});
+    } catch {}
+  }, 15000);
+
+  // Полная загрузка только при смене вкладки
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadAll();
+  });
+})();
+</script>
+</body>
+</html>

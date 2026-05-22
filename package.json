@@ -1,0 +1,35 @@
+{
+  "name": "reviewos",
+  "version": "2.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "AI-powered marketplace operations: Ozon & Wildberries reviews/questions, inspection briefs, competitor & period analysis.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "reset-admin": "node scripts/reset-admin-password.js",
+    "backup": "bash scripts/backup-data.sh",
+    "test": "node tests/smoke.js",
+    "test:full": "node tests/smoke.js --password=$SMOKE_PASSWORD"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "axios": "^1.7.9",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

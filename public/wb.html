@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>ReviewOS — WB Studio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="/app.css?v=4">
+<script type="module" src="/motion-bits.js?v=1"></script>
+<style>
+  :root{
+    --bg:#0b0d12; --bg2:#0f1218;
+    --panel:#141823; --panel2:#1a1f2c; --panel3:#222837;
+    --line:#262c3d; --line2:#2f3649;
+    --t1:#f3f5fa; --t2:#a0a8bc; --t3:#6b7388; --t4:#4a5163;
+    --blue:#2997ff; --blue-soft:rgba(41,151,255,.14);
+    --green:#30d158; --green-soft:rgba(48,209,88,.14);
+    --orange:#ff9f0a; --orange-soft:rgba(255,159,10,.14);
+    --red:#ff453a; --red-soft:rgba(255,69,58,.14);
+    --purple:#bf5af2; --purple-soft:rgba(191,90,242,.14);
+    --shadow:0 6px 28px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:radial-gradient(1200px 600px at 20% -10%, rgba(41,151,255,.08), transparent 60%), radial-gradient(1000px 500px at 90% 10%, rgba(191,90,242,.07), transparent 60%), var(--bg);color:var(--t1);font:14px/1.55 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:var(--blue);text-decoration:none}
+
+  /* Header */
+  header{
+    position:sticky;top:0;z-index:10;
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    background:rgba(11,13,18,.7);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;gap:24px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-.2px}
+  .brand .dot{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#bf5af2,#2997ff);box-shadow:0 4px 14px rgba(41,151,255,.4)}
+  nav{display:flex;gap:6px;align-items:center}
+  nav a{color:var(--t2);font-size:13px;padding:7px 12px;border-radius:8px;transition:.15s}
+  nav a:hover{color:var(--t1);background:var(--panel2)}
+  nav a.on{color:var(--t1);background:var(--panel2);font-weight:600}
+  .logout{color:var(--t3) !important;font-size:12px !important}
+
+  /* Hero */
+  .hero{max-width:1280px;margin:36px auto 22px;padding:0 28px}
+  .hero h1{margin:0 0 8px;font-size:30px;font-weight:800;letter-spacing:-1px}
+  .hero h1 .accent{background:linear-gradient(90deg,#2997ff,#bf5af2);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{margin:0;color:var(--t2);font-size:14px;max-width:720px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .step-num{width:30px;height:30px;border-radius:9px;background:var(--panel3);color:var(--t1);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .step-num.b{background:var(--blue-soft);color:var(--blue)}
+  .step-num.p{background:var(--purple-soft);color:var(--purple)}
+  .step-num.o{background:var(--orange-soft);color:var(--orange)}
+  .step-l{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .step-t{font-size:13px;color:var(--t1);font-weight:600;margin-top:2px}
+  @media(max-width:780px){.steps{grid-template-columns:1fr}}
+
+  /* Main */
+  main{max-width:1280px;margin:0 auto 60px;padding:0 28px;display:grid;gap:22px}
+
+  /* Panel */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+  .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px;flex-wrap:wrap}
+  .panel-head .pn{display:flex;align-items:center;gap:12px}
+  .panel-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .panel-ico.b{background:var(--blue-soft);color:var(--blue)}
+  .panel-ico.p{background:var(--purple-soft);color:var(--purple)}
+  .panel-ico.o{background:var(--orange-soft);color:var(--orange)}
+  .panel-head h2{margin:0;font-size:17px;font-weight:700;letter-spacing:-.2px}
+  .panel-head .sub{margin:3px 0 0;font-size:12.5px;color:var(--t2)}
+  .panel-chip{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.6px;text-transform:uppercase;background:var(--panel3);padding:5px 10px;border-radius:7px}
+
+  /* Form */
+  .form-row{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:end}
+  .form-row.three{grid-template-columns:1fr 160px auto}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  input,select,textarea{background:var(--panel2);color:var(--t1);border:1px solid var(--line);border-radius:11px;padding:11px 14px;font:inherit;outline:none;transition:border-color .15s, background .15s;width:100%}
+  input:focus,textarea:focus,select:focus{border-color:var(--blue);background:var(--panel3)}
+  input::placeholder,textarea::placeholder{color:var(--t4)}
+  textarea{min-height:80px;resize:vertical}
+  select{appearance:none;background-image:url('data:image/svg+xml;utf8,<svg fill="%23a0a8bc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg>');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+
+  /* Buttons */
+  button{cursor:pointer;font:inherit;border-radius:11px;padding:11px 18px;font-weight:600;border:1px solid transparent;display:inline-flex;align-items:center;gap:7px;justify-content:center;transition:.15s;white-space:nowrap}
+  button.primary{background:var(--blue);color:#fff;box-shadow:0 4px 14px rgba(41,151,255,.32)}
+  button.primary:hover:not(:disabled){background:#1a8aff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(41,151,255,.4)}
+  button.ghost{background:transparent;color:var(--t1);border-color:var(--line)}
+  button.ghost:hover:not(:disabled){background:var(--panel2);border-color:var(--line2)}
+  button.danger{background:transparent;color:var(--red);border-color:rgba(255,69,58,.3)}
+  button.danger:hover:not(:disabled){background:rgba(255,69,58,.08)}
+  button.icon{padding:8px 10px;font-size:12px}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none !important;box-shadow:none !important}
+
+  /* Cards grid */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:18px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:.15s}
+  .card:hover{border-color:var(--line2);background:var(--panel3)}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card-nm{font-size:11px;color:var(--t3);font-family:SF Mono,Menlo,monospace}
+  .card-nm b{color:var(--t1);font-weight:700}
+  .card h3{margin:0;font-size:13.5px;font-weight:600;line-height:1.4;color:var(--t1);min-height:38px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11.5px;color:var(--t2)}
+  .card-meta b{color:var(--t1);font-weight:600}
+  .card-price{font-size:15px;font-weight:700;color:var(--t1)}
+  .card-price .old{color:var(--t3);font-size:11px;text-decoration:line-through;font-weight:500;margin-left:6px}
+  .card-cat{font-size:11px;color:var(--t3)}
+  .card-actions{display:flex;gap:6px;margin-top:auto;padding-top:8px}
+  .empty{padding:32px 18px;text-align:center;color:var(--t3);font-size:13px;background:var(--panel2);border-radius:12px;border:1px dashed var(--line2)}
+
+  /* Badges */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:10.5px;font-weight:700;background:var(--blue-soft);color:var(--blue);text-transform:uppercase;letter-spacing:.3px}
+  .badge.green{background:var(--green-soft);color:var(--green)}
+  .badge.orange{background:var(--orange-soft);color:var(--orange)}
+  .badge.red{background:var(--red-soft);color:var(--red)}
+  .badge.gray{background:var(--panel3);color:var(--t2)}
+
+  /* Output */
+  .out{margin-top:18px;display:flex;flex-direction:column;gap:18px}
+  .out-block{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .out-block-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .out-block-head .bico{width:30px;height:30px;border-radius:9px;background:var(--panel3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .out-block-head h3{margin:0;font-size:14px;font-weight:700}
+  .out-block-head .hint{margin-left:auto;font-size:11px;color:var(--t3)}
+  .out-summary{font-size:14px;line-height:1.7;color:var(--t1);padding:14px 16px;background:linear-gradient(135deg,rgba(41,151,255,.08),rgba(191,90,242,.04));border:1px solid var(--line);border-radius:12px}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  th{color:var(--t3);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;background:var(--panel3)}
+  th:first-child{border-top-left-radius:8px}
+  th:last-child{border-top-right-radius:8px}
+  table.zebra tbody tr:nth-child(odd) td{background:rgba(255,255,255,.015)}
+  td.num{font-variant-numeric:tabular-nums;color:var(--t2)}
+
+  ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.list li{padding:10px 12px;background:var(--panel3);border-left:3px solid var(--blue);border-radius:8px;font-size:13px;line-height:1.55}
+  ul.list.red li{border-left-color:var(--red)}
+  ul.list.green li{border-left-color:var(--green)}
+  ul.list.orange li{border-left-color:var(--orange)}
+  ul.list li b{color:var(--t1)}
+
+  pre{white-space:pre-wrap;word-break:break-word;background:#0a0c12;border:1px solid var(--line);border-radius:10px;padding:14px;font:11.5px/1.55 SF Mono,Menlo,monospace;color:var(--t2);max-height:380px;overflow:auto;margin:0}
+
+  /* Compare grid */
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .compare-col{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .compare-col h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);display:flex;align-items:center;gap:8px}
+  .compare-col.mine h4 .tag{background:var(--blue-soft);color:var(--blue);padding:3px 8px;border-radius:7px;font-size:10px;font-weight:700}
+  .compare-col.comp h4 .tag{background:var(--purple-soft);color:var(--purple);padding:3px 8px;border-radius:7px;font-size:10px;font-weight:700}
+  @media(max-width:820px){.compare-grid{grid-template-columns:1fr}}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat .l{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:4px}
+  .stat .v{font-size:18px;font-weight:700}
+  .stat .d{font-size:11px;color:var(--t2);margin-top:2px}
+  .stat .v.green{color:var(--green)} .stat .v.red{color:var(--red)} .stat .v.orange{color:var(--orange)}
+
+  /* Loading state */
+  .loading{display:flex;align-items:center;gap:10px;padding:16px;color:var(--t2);font-size:13px;background:var(--panel2);border-radius:12px;border:1px solid var(--line)}
+  .loading .spin{width:14px;height:14px;border:2px solid var(--line2);border-top-color:var(--blue);border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err-box{padding:14px 16px;color:#ffd2cf;background:rgba(255,69,58,.08);border:1px solid rgba(255,69,58,.3);border-radius:12px;font-size:13px}
+
+  /* Toast */
+  .toast{position:fixed;right:18px;bottom:18px;background:var(--panel);color:var(--t1);border:1px solid var(--line2);border-radius:12px;padding:12px 16px;font-size:13px;max-width:380px;z-index:99;box-shadow:var(--shadow);animation:in .2s ease}
+  .toast.err{border-color:rgba(255,69,58,.4);background:#1f1316;color:#ffd2cf}
+  .toast.ok{border-left:3px solid var(--green)}
+  @keyframes in{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  .row-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+
+  @media(max-width:680px){
+    .form-row{grid-template-columns:1fr}
+    .form-row.three{grid-template-columns:1fr}
+    .panel{padding:18px}
+    .hero h1{font-size:24px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand"><span class="dot"></span><span>ReviewOS · WB Studio</span></div>
+    <nav>
+      <a href="/">Дашборд</a>
+      <a href="#" class="on">WB</a>
+      <a href="#" id="logout" class="logout">Выйти</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Анализ карточек <span class="accent">Wildberries</span></h1>
+  <p>Загружай ссылку или артикул товара — мы достаём характеристики, отзывы и цены из публичных API WB, а Claude собирает ТЗ для китайской инспекции или сравнивает твою карточку с конкурентом.</p>
+
+  <div class="steps">
+    <div class="step"><div class="step-num b">1</div><div><div class="step-l">Загрузка</div><div class="step-t">Карточка + отзывы из WB</div></div></div>
+    <div class="step"><div class="step-num p">2</div><div><div class="step-l">ТЗ инспекции</div><div class="step-t">Чек-лист QC, выборка, риски</div></div></div>
+    <div class="step"><div class="step-num o">3</div><div><div class="step-l">Сравнение</div><div class="step-t">Моя vs конкурент → план</div></div></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Block 1: Загрузить карточку -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="pn">
+        <div class="panel-ico b">📥</div>
+        <div>
+          <h2>1. Загрузить карточку WB</h2>
+          <p class="sub">Артикул, число, ссылка вида <code style="background:var(--panel3);padding:1px 6px;border-radius:5px;font-size:11px">wildberries.ru/catalog/.../detail.aspx</code> — авторизация WB не нужна.</p>
+        </div>
+      </div>
+      <span class="panel-chip">бесплатные публичные API</span>
+    </div>
+
+    <div class="form-row three">
+      <div class="field">
+        <label for="wb-input">Ссылка или артикул товара</label>
+        <input id="wb-input" placeholder="Например: 455029052 или https://www.wildberries.ru/catalog/455029052/detail.aspx" />
+      </div>
+      <div class="field">
+        <label for="wb-max">Макс. отзывов</label>
+        <input id="wb-max" type="number" min="50" max="1000" value="300" />
+      </div>
+      <div class="row-actions" style="margin:0">
+        <button class="primary" id="btn-fetch">📥 Загрузить</button>
+        <button class="ghost" id="btn-refresh" title="Обновить список из кеша">↻</button>
+      </div>
+    </div>
+
+    <div id="cards-wrap">
+      <div id="cards" class="cards"></div>
+    </div>
+  </section>
+
+  <!-- Block 2: ТЗ инспекции -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="pn">
+        <div class="panel-ico p">🧪</div>
+        <div>
+          <h2>2. ТЗ для инспекции в Китае</h2>
+          <p class="sub">На основе реальных отзывов с WB — чек-лист QC, план выборки AQL, тесты, риски ниши и доработки товара.</p>
+        </div>
+      </div>
+      <span class="panel-chip">AI · Claude</span>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="brief-input">Загрузить новую карточку (опционально)</label>
+        <input id="brief-input" placeholder="Ссылка/артикул — или оставь пустым и выбери из списка ниже" />
+      </div>
+      <div class="field" style="min-width:200px">
+        <label for="brief-sample">Размер выборки на инспекцию</label>
+        <input id="brief-sample" type="number" min="10" max="1000" value="50" />
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:10px">
+      <div class="field">
+        <label for="brief-nm">Или выбери из ранее загруженных</label>
+        <select id="brief-nm"></select>
+      </div>
+      <div class="row-actions" style="margin:0;align-self:end">
+        <button class="primary" id="btn-brief">🧪 Сгенерировать ТЗ</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label for="brief-notes">Заметки инспектору (необязательно)</label>
+      <textarea id="brief-notes" placeholder="На что обратить внимание, известные проблемы партии, особые требования к упаковке…"></textarea>
+    </div>
+    <div id="brief-out" class="out"></div>
+  </section>
+
+  <!-- Block 3: Сравнение -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="pn">
+        <div class="panel-ico o">⚖️</div>
+        <div>
+          <h2>3. Сравнение моя карточка vs конкурент</h2>
+          <p class="sub">Цена, рейтинг, характеристики, темы отзывов — и конкретный план как обогнать конкурента.</p>
+        </div>
+      </div>
+      <span class="panel-chip">AI · Claude</span>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-col mine">
+        <h4>Моя карточка <span class="tag">я</span></h4>
+        <div class="field"><label>Ссылка/артикул</label><input id="cmp-mine-input" placeholder="Вставь сюда или выбери ниже" /></div>
+        <div class="field" style="margin-top:10px"><label>Или из загруженных</label><select id="cmp-mine"></select></div>
+      </div>
+      <div class="compare-col comp">
+        <h4>Конкурент <span class="tag">vs</span></h4>
+        <div class="field"><label>Ссылка/артикул</label><input id="cmp-comp-input" placeholder="Ссылка на товар конкурента" /></div>
+        <div class="field" style="margin-top:10px"><label>Или из загруженных</label><select id="cmp-comp"></select></div>
+      </div>
+    </div>
+    <div class="row-actions" style="justify-content:center;margin-top:18px">
+      <button class="primary" id="btn-cmp" style="min-width:240px">⚖️ Сравнить и получить план</button>
+    </div>
+    <div id="cmp-out" class="out"></div>
+  </section>
+
+  <!-- Block 4: Сравнение по периодам -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="pn">
+        <div class="panel-ico" style="background:var(--green-soft);color:var(--green)">📸</div>
+        <div>
+          <h2>4. Сравнение по периодам (до/после доработки)</h2>
+          <p class="sub">Делай «снимок» карточки до доработки товара, потом — после. AI покажет что улучшилось, что ухудшилось и стоила ли доработка усилий.</p>
+        </div>
+      </div>
+      <span class="panel-chip">snapshots · AI · Claude</span>
+    </div>
+
+    <div class="form-row three">
+      <div class="field">
+        <label for="snap-nm">Карточка</label>
+        <select id="snap-nm"></select>
+      </div>
+      <div class="field">
+        <label for="snap-label">Метка снимка</label>
+        <input id="snap-label" placeholder="Напр.: «До смены упаковки», «После замены мотора v2»" />
+      </div>
+      <div class="row-actions" style="margin:0;align-self:end">
+        <button class="primary" id="btn-snap">📸 Сделать снимок</button>
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label for="snap-notes">Что именно изменили (опционально, попадёт в контекст AI)</label>
+      <textarea id="snap-notes" placeholder="Поменяли поставщика батарей, усилили крепление щётки, добавили инструкцию на русском…"></textarea>
+    </div>
+
+    <div id="snap-list" style="margin-top:18px"></div>
+
+    <div class="form-row" style="margin-top:18px">
+      <div class="field">
+        <label for="period-before">Снимок «ДО»</label>
+        <select id="period-before"></select>
+      </div>
+      <div class="field">
+        <label for="period-after">Снимок «ПОСЛЕ»</label>
+        <select id="period-after"></select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label for="period-notes">Дополнить контекст для AI (необязательно)</label>
+      <textarea id="period-notes" placeholder="Между снимками: обновили карточку, поменяли поставщика, провели инспекцию в Гуанчжоу…"></textarea>
+    </div>
+    <div class="row-actions" style="justify-content:center;margin-top:14px">
+      <button class="primary" id="btn-period" style="min-width:280px">🔁 Сравнить периоды</button>
+    </div>
+    <div id="period-out" class="out"></div>
+  </section>
+
+  <!-- Block 5: Ответы продавца — отзывы и вопросы WB -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="pn">
+        <div class="panel-ico" style="background:rgba(255,69,58,.14);color:var(--red)">💬</div>
+        <div>
+          <h2>5. Ответы продавца — отзывы и вопросы WB</h2>
+          <p class="sub">Загрузка через WB Seller API, AI-ответ с выбранной тональностью, ручное редактирование и публикация прямо в WB.</p>
+        </div>
+      </div>
+      <span class="panel-chip" id="wbs-status">требуется WB ключ</span>
+    </div>
+
+    <div id="wbs-ban-banner" style="display:none;margin-bottom:14px"></div>
+
+    <div class="row-actions" style="flex-wrap:wrap;align-items:center">
+      <button class="primary" id="btn-wbs-sync-rev">📥 Загрузить отзывы</button>
+      <button class="primary" id="btn-wbs-sync-q">📥 Загрузить вопросы</button>
+      <button class="ghost" id="btn-wbs-probe" title="Один лёгкий запрос (take=1) — проверяет снял ли WB бан">🔍 Проверить доступ</button>
+      <button class="ghost" id="btn-wbs-refresh">↻ Обновить список</button>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);cursor:pointer;padding:0 8px" title="Тянуть весь архив отзывов/вопросов (включая отвеченные). Дольше, но видишь всё.">
+        <input type="checkbox" id="wbs-include-answered" style="margin:0" checked>
+        Включая архив (отвеченные)
+      </label>
+      <a href="/" class="ghost" style="text-decoration:none;padding:11px 16px;border:1px solid var(--line);border-radius:11px;color:var(--t2);font-size:12px;margin-left:auto">→ Settings</a>
+    </div>
+
+    <div style="margin-top:18px">
+      <div class="h-section" id="wbs-rev-title">Отзывы</div>
+      <div class="row-actions" style="gap:6px;margin-bottom:10px">
+        <button class="ghost icon" data-wbs-rev-f="pending" onclick="setWbsRevFilter('pending')" style="font-size:11px">Без ответа</button>
+        <button class="ghost icon" data-wbs-rev-f="ready" onclick="setWbsRevFilter('ready')" style="font-size:11px">Готовы</button>
+        <button class="ghost icon" data-wbs-rev-f="posted" onclick="setWbsRevFilter('posted')" style="font-size:11px">Отвеченные (архив)</button>
+        <button class="ghost icon" data-wbs-rev-f="all" onclick="setWbsRevFilter('all')" style="font-size:11px">Все</button>
+      </div>
+      <div id="wbs-rev-list"></div>
+    </div>
+
+    <div style="margin-top:18px">
+      <div class="h-section" id="wbs-q-title">Вопросы</div>
+      <div class="row-actions" style="gap:6px;margin-bottom:10px">
+        <button class="ghost icon" data-wbs-q-f="pending" onclick="setWbsQFilter('pending')" style="font-size:11px">Без ответа</button>
+        <button class="ghost icon" data-wbs-q-f="ready" onclick="setWbsQFilter('ready')" style="font-size:11px">Готовы</button>
+        <button class="ghost icon" data-wbs-q-f="posted" onclick="setWbsQFilter('posted')" style="font-size:11px">Отвеченные (архив)</button>
+        <button class="ghost icon" data-wbs-q-f="all" onclick="setWbsQFilter('all')" style="font-size:11px">Все</button>
+      </div>
+      <div id="wbs-q-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+const TOKEN = localStorage.getItem("token");
+if (!TOKEN) location.href = "/login.html";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+function toast(msg, kind = "ok") {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast " + (kind === "err" ? "err" : "ok");
+  t.style.display = "block";
+  if (window.MX?.springToast) window.MX.springToast(t);
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(() => {
+    if (window.MX?.springToastOut) {
+      window.MX.springToastOut(t).then(() => { t.style.display = "none"; });
+    } else { t.style.display = "none"; }
+  }, 4500);
+}
+
+async function api(method, url, body) {
+  const r = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + TOKEN },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.ok === false) throw new Error(j.error || `HTTP ${r.status}`);
+  return j;
+}
+
+$("logout").onclick = (e) => {
+  e.preventDefault();
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  location.href = "/login.html";
+};
+
+let CARDS = [];
+
+async function loadCards() {
+  try {
+    // Skeleton при первой загрузке
+    if (!CARDS.length && window.MX?.skeleton) {
+      const c = $("cards");
+      if (c) c.innerHTML = window.MX.skeleton("card", 6);
+    }
+    const j = await api("GET", "/api/wb/cards");
+    CARDS = j.cards || [];
+    renderCards();
+  } catch (e) { toast(e.message, "err"); }
+}
+
+function ratingBadge(r) {
+  if (!r) return `<span class="badge gray">★ —</span>`;
+  if (r >= 4.5) return `<span class="badge green">★ ${r}</span>`;
+  if (r >= 4) return `<span class="badge">★ ${r}</span>`;
+  if (r >= 3) return `<span class="badge orange">★ ${r}</span>`;
+  return `<span class="badge red">★ ${r}</span>`;
+}
+
+function fmtPrice(c) {
+  if (!c.price) return '<span style="color:var(--t3);font-size:12px">цена не получена</span>';
+  const base = c.base_price && c.base_price > c.price ? `<span class="old">${c.base_price.toLocaleString("ru")} ₽</span>` : "";
+  return `<div class="card-price">${Number(c.price).toLocaleString("ru")} ₽${base}</div>`;
+}
+
+function renderCards() {
+  const c = $("cards");
+  if (!CARDS.length) {
+    c.outerHTML = '<div id="cards" class="empty">Пока нет загруженных карточек. Введи ссылку или артикул выше — и здесь появится товар.</div>';
+    return;
+  }
+  c.outerHTML = `<div id="cards" class="cards">${CARDS.map((card) => `
+    <div class="card">
+      <div class="card-head">
+        <span class="card-nm">nm <b>${card.nm_id}</b></span>
+        ${ratingBadge(card.rating)}
+      </div>
+      <h3>${esc(card.name || "—")}</h3>
+      ${fmtPrice(card)}
+      <div class="card-meta">
+        <span><b>${card.feedbacks || 0}</b> отзывов всего</span>
+        <span>· загружено <b>${card.reviews_count || 0}</b></span>
+        <span>· характеристик <b style="color:${(card.characteristics_count || 0) > 0 ? "var(--green)" : "var(--orange)"}">${card.characteristics_count || 0}</b></span>
+      </div>
+      ${(card.characteristics_count || 0) === 0 ? '<div style="font-size:11px;color:var(--orange);background:rgba(255,159,10,.10);border-left:3px solid var(--orange);padding:6px 10px;border-radius:6px;line-height:1.4;margin-top:4px">⚠ Характеристики не подтянулись (basket WB не нашёл карточку). Нажми «↻» для повторной попытки.</div>' : ""}
+      <div class="card-cat">${esc(card.brand || "")} ${card.brand && card.subj_name ? "·" : ""} ${esc(card.subj_name || "")}</div>
+      <div class="card-actions">
+        <button class="ghost icon" data-act="brief" data-nm="${card.nm_id}" title="Сгенерировать ТЗ для инспекции">🧪 ТЗ</button>
+        <button class="ghost icon" data-act="reload" data-nm="${card.nm_id}" title="Перезагрузить данные (включая характеристики)">↻</button>
+        <button class="danger icon" data-act="del" data-nm="${card.nm_id}" title="Удалить из кеша" style="margin-left:auto">✕</button>
+      </div>
+    </div>`).join("")}</div>`;
+
+  const opts = CARDS.map((c) => `<option value="${c.nm_id}">${c.nm_id} — ${esc((c.name || "").slice(0, 60))}${c.price ? ` · ${Number(c.price).toLocaleString("ru")} ₽` : ""}</option>`).join("");
+  $("brief-nm").innerHTML = `<option value="">— выбери карточку —</option>${opts}`;
+  $("cmp-mine").innerHTML = `<option value="">— моя карточка —</option>${opts}`;
+  $("cmp-comp").innerHTML = `<option value="">— карточка конкурента —</option>${opts}`;
+  if (typeof syncSnapCardSelect === "function") syncSnapCardSelect();
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const nm = btn.dataset.nm;
+  const act = btn.dataset.act;
+  if (act === "brief") {
+    $("brief-nm").value = nm;
+    document.querySelector('section:nth-of-type(2)').scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => $("btn-brief").click(), 400);
+  } else if (act === "reload") {
+    btn.disabled = true;
+    try {
+      await api("POST", "/api/wb/fetch", { input: nm, force: true, max_reviews: Number($("wb-max").value) || 300 });
+      toast(`Карточка ${nm} обновлена`);
+      loadCards();
+    } catch (er) { toast(er.message, "err"); }
+    finally { btn.disabled = false; }
+  } else if (act === "del") {
+    if (!btn.dataset.confirm) {
+      btn.dataset.confirm = "1";
+      const orig = btn.innerHTML; btn.innerHTML = "Точно? ✓";
+      btn.style.background = "var(--red-soft)";
+      if (window.MX?.pulseConfirm) window.MX.pulseConfirm(btn);
+      setTimeout(() => { delete btn.dataset.confirm; btn.innerHTML = orig; btn.style.background = ""; }, 3500);
+      return;
+    }
+    delete btn.dataset.confirm; btn.style.background = "";
+    try { await api("DELETE", "/api/wb/cards/" + nm); loadCards(); }
+    catch (er) { toast(er.message, "err"); }
+  }
+});
+
+$("btn-fetch").onclick = async () => {
+  const input = $("wb-input").value.trim();
+  if (!input) return toast("Введи ссылку или артикул", "err");
+  const btn = $("btn-fetch");
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span class="spin" style="width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite"></span> Загружаем';
+  try {
+    const j = await api("POST", "/api/wb/fetch", { input, max_reviews: Number($("wb-max").value) || 300 });
+    toast(`Загружено: ${j.card.name?.slice(0, 50) || j.card.nm_id} · ${j.card.reviews_count} отзывов`);
+    $("wb-input").value = "";
+    await loadCards();
+  } catch (e) { toast(e.message, "err"); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+$("btn-refresh").onclick = loadCards;
+
+function sevBadge(s) {
+  if (s === "critical" || s === "high") return `<span class="badge red">${esc(s)}</span>`;
+  if (s === "major" || s === "medium") return `<span class="badge orange">${esc(s)}</span>`;
+  if (s === "minor" || s === "low") return `<span class="badge">${esc(s)}</span>`;
+  return `<span class="badge gray">${esc(s || "—")}</span>`;
+}
+
+function effortBadge(e) {
+  if (e === "low") return `<span class="badge green">${e}</span>`;
+  if (e === "medium") return `<span class="badge orange">${e}</span>`;
+  if (e === "high") return `<span class="badge red">${e}</span>`;
+  return `<span class="badge gray">${esc(e || "—")}</span>`;
+}
+
+async function resolveCardNmId(inputValue, selectValue, label) {
+  const raw = String(inputValue || "").trim();
+  if (raw) {
+    const j = await api("POST", "/api/wb/fetch", { input: raw, max_reviews: Number($("wb-max").value) || 300 });
+    await loadCards();
+    return String(j.card.nm_id);
+  }
+  if (selectValue) return String(selectValue);
+  throw new Error(`Введи ссылку/артикул ${label} или выбери из списка`);
+}
+
+function loadingBlock(text) { return `<div class="loading"><span class="spin"></span><span>${esc(text)}</span></div>`; }
+function errorBlock(text) { return `<div class="err-box">⚠ ${esc(text)}</div>`; }
+
+function renderBrief(j) {
+  const b = j.brief || {};
+  const out = $("brief-out");
+  const issues = (b.top_issues || []).map((i) => `<tr>
+    <td><b>${esc(i.issue)}</b></td><td class="num">${i.mentions ?? "—"}</td><td>${sevBadge(i.severity)}</td><td>${esc(i.root_cause_hypothesis || "")}</td></tr>`).join("");
+  const checklist = (b.qc_checklist || []).map((c) => `<tr>
+    <td><b>${esc(c.step)}</b></td><td>${esc(c.method || "")}</td><td>${esc(c.acceptance || "")}</td><td>${sevBadge(c.priority)}</td></tr>`).join("");
+  const tests = (b.tests_to_perform || []).map((t) => `<tr><td><b>${esc(t.test)}</b></td><td>${esc(t.details || "")}</td><td>${esc(t.equipment || "")}</td></tr>`).join("");
+  const improvements = (b.improvements || []).map((i) => `<tr><td><b>${esc(i.area)}</b></td><td>${esc(i.action)}</td><td>${esc(i.expected_effect || "")}</td></tr>`).join("");
+  const risks = (b.niche_risks || []).map((r) => `<li><b>${esc(r.risk)}.</b> ${esc(r.mitigation || "")}</li>`).join("") || "<li>—</li>";
+  const pack = (b.packaging_and_labeling || []).map((p) => `<li>${esc(p)}</li>`).join("") || "<li>—</li>";
+  const samp = b.sampling || {};
+
+  out.innerHTML = `
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📌</div><h3>Резюме</h3><span class="hint">Товар: ${esc(j.name || "—")} · отзывов проанализировано ${j.reviews_analyzed ?? "—"}</span></div>
+      <div class="out-summary">${esc(b.summary || "—")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--red-soft);color:var(--red)">⚠️</div><h3>Топ-проблемы из отзывов</h3></div>
+      <table class="zebra"><thead><tr><th>Проблема</th><th>Упом.</th><th>Severity</th><th>Гипотеза причины</th></tr></thead><tbody>${issues || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--blue-soft);color:var(--blue)">✅</div><h3>QC чек-лист инспектору</h3></div>
+      <table class="zebra"><thead><tr><th>Что проверять</th><th>Как</th><th>Критерий годен/не годен</th><th>Приоритет</th></tr></thead><tbody>${checklist || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--purple-soft);color:var(--purple)">📊</div><h3>План выборки</h3></div>
+      <div class="stats">
+        <div class="stat"><div class="l">План</div><div class="v" style="font-size:14px">${esc(samp.plan || "—")}</div></div>
+        <div class="stat"><div class="l">Sample size</div><div class="v">${samp.sample_size ?? "—"}</div></div>
+        <div class="stat"><div class="l">Critical AQL</div><div class="v red">${esc(samp.critical_aql || "—")}</div></div>
+        <div class="stat"><div class="l">Major AQL</div><div class="v orange">${esc(samp.major_aql || "—")}</div></div>
+        <div class="stat"><div class="l">Minor AQL</div><div class="v green">${esc(samp.minor_aql || "—")}</div></div>
+      </div>
+      <div style="color:var(--t2);font-size:13px;line-height:1.6">${esc(samp.rationale || "")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--orange-soft);color:var(--orange)">🔬</div><h3>Тесты для проведения</h3></div>
+      <table class="zebra"><thead><tr><th>Тест</th><th>Методика</th><th>Оборудование</th></tr></thead><tbody>${tests || '<tr><td colspan="3" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📦</div><h3>Упаковка и маркировка</h3></div>
+      <ul class="list">${pack}</ul>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--green-soft);color:var(--green)">⬆️</div><h3>Что доработать в товаре</h3></div>
+      <table class="zebra"><thead><tr><th>Область</th><th>Действие</th><th>Ожидаемый эффект</th></tr></thead><tbody>${improvements || '<tr><td colspan="3" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--red-soft);color:var(--red)">⚡</div><h3>Риски ниши</h3></div>
+      <ul class="list red">${risks}</ul>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📄</div><h3>Сырые данные (JSON)</h3><span class="hint">Можно скачать для архива</span></div>
+      <pre>${esc(JSON.stringify(b, null, 2))}</pre>
+      <div class="row-actions"><button class="ghost" id="dl-brief">⬇ Скачать JSON</button></div>
+    </div>`;
+  $("dl-brief").onclick = () => {
+    const blob = new Blob([JSON.stringify(j, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `inspection-${j.nm_id}.json`; a.click();
+  };
+}
+
+$("btn-brief").onclick = async () => {
+  const btn = $("btn-brief"); btn.disabled = true;
+  const orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Генерим…';
+  $("brief-out").innerHTML = loadingBlock("Подготавливаем данные…");
+  try {
+    const nm = await resolveCardNmId($("brief-input").value, $("brief-nm").value, "товара");
+    $("brief-nm").value = nm; $("brief-input").value = "";
+    $("brief-out").innerHTML = loadingBlock("Claude анализирует отзывы и собирает ТЗ…");
+    const j = await api("POST", "/api/wb/inspection-brief", {
+      nm_id: nm,
+      sample_target: Number($("brief-sample").value) || 50,
+      notes: $("brief-notes").value.trim() || undefined,
+    });
+    renderBrief(j);
+  } catch (e) {
+    $("brief-out").innerHTML = errorBlock(e.message);
+  } finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+function themeRow(t) { return `<tr><td><b>${esc(t.theme)}</b></td><td>${sevBadge(t.sentiment === "positive" ? "low" : t.sentiment === "negative" ? "high" : "medium")}</td><td class="num">${t.mentions ?? "—"}</td></tr>`; }
+
+function priceVerdictColor(v) {
+  if (v === "дешевле") return "green";
+  if (v === "дороже") return "red";
+  return "orange";
+}
+
+function renderCompare(j) {
+  const c = j.comparison || {};
+  const out = $("cmp-out");
+  const specDiffs = (c.spec_diffs || []).map((s) => {
+    const verdictBadge = s.verdict?.includes("лучше") ? `<span class="badge green">${esc(s.verdict)}</span>`
+                       : s.verdict?.includes("хуже") ? `<span class="badge red">${esc(s.verdict)}</span>`
+                       : `<span class="badge orange">${esc(s.verdict || "—")}</span>`;
+    return `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.mine)}</td><td>${esc(s.competitor)}</td><td>${verdictBadge}</td></tr>`;
+  }).join("");
+  const themesMine = (c.review_themes_mine || []).map(themeRow).join("");
+  const themesComp = (c.review_themes_competitor || []).map(themeRow).join("");
+  const plan = (c.action_plan || []).map((p) => `<tr><td><b>${esc(p.action)}</b></td><td>${esc(p.why)}</td><td>${esc(p.impact)}</td><td>${effortBadge(p.effort)}</td></tr>`).join("");
+  const better = (arr) => (arr || []).map((s) => `<li>${esc(s)}</li>`).join("") || "<li>—</li>";
+  const cardOpt = (c.card_optimization || []).map((s) => `<li>${esc(s)}</li>`).join("") || "<li>—</li>";
+  const pr = c.price_comparison || {};
+  const rt = c.rating_comparison || {};
+  const pricing = c.pricing_recommendation || {};
+
+  out.innerHTML = `
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">🎯</div><h3>Главный вывод</h3></div>
+      <div class="out-summary">${esc(c.headline || "—")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--blue-soft);color:var(--blue)">💰</div><h3>Цена и рейтинг</h3></div>
+      <div class="stats">
+        <div class="stat"><div class="l">Моя цена</div><div class="v">${(pr.mine || 0).toLocaleString("ru")} ₽</div></div>
+        <div class="stat"><div class="l">Цена конкурента</div><div class="v">${(pr.competitor || 0).toLocaleString("ru")} ₽</div></div>
+        <div class="stat"><div class="l">Разница</div><div class="v ${priceVerdictColor(pr.verdict)}">${pr.gap_pct != null ? pr.gap_pct + "%" : "—"}</div><div class="d">${esc(pr.verdict || "")}</div></div>
+        <div class="stat"><div class="l">Мой рейтинг</div><div class="v">${rt.mine_rating || "—"}</div><div class="d">${rt.mine_reviews || 0} отзывов</div></div>
+        <div class="stat"><div class="l">Конкурент рейтинг</div><div class="v">${rt.competitor_rating || "—"}</div><div class="d">${rt.competitor_reviews || 0} отзывов</div></div>
+      </div>
+      <div style="color:var(--t2);font-size:13px;line-height:1.6;margin-top:6px">${esc(pr.comment || "")} ${esc(rt.verdict ? "· " + rt.verdict : "")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--purple-soft);color:var(--purple)">🔧</div><h3>Сравнение характеристик</h3></div>
+      <table class="zebra"><thead><tr><th>Характеристика</th><th>Моя</th><th>Конкурент</th><th>Вердикт</th></tr></thead><tbody>${specDiffs || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <h4>Что у конкурента лучше</h4>
+        <ul class="list red">${better(c.what_competitor_does_better)}</ul>
+      </div>
+      <div class="compare-col">
+        <h4>Где мы сильнее</h4>
+        <ul class="list green">${better(c.what_we_do_better)}</ul>
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <h4>Темы отзывов: моя карточка</h4>
+        <table class="zebra"><thead><tr><th>Тема</th><th>Тон</th><th>Упом.</th></tr></thead><tbody>${themesMine || '<tr><td colspan="3" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+      </div>
+      <div class="compare-col">
+        <h4>Темы отзывов: конкурент</h4>
+        <table class="zebra"><thead><tr><th>Тема</th><th>Тон</th><th>Упом.</th></tr></thead><tbody>${themesComp || '<tr><td colspan="3" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+      </div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--green-soft);color:var(--green)">🚀</div><h3>План действий</h3></div>
+      <table class="zebra"><thead><tr><th>Что сделать</th><th>Зачем</th><th>Эффект</th><th>Усилие</th></tr></thead><tbody>${plan || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--orange-soft);color:var(--orange)">💵</div><h3>Рекомендация по цене</h3></div>
+      <div class="stats">
+        <div class="stat"><div class="l">Новая цена</div><div class="v" style="color:var(--orange)">${(pricing.new_price || 0).toLocaleString("ru")} ₽</div></div>
+      </div>
+      <div style="color:var(--t2);font-size:13px;line-height:1.6">${esc(pricing.reasoning || "—")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📝</div><h3>Оптимизация карточки</h3></div>
+      <ul class="list">${cardOpt}</ul>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📄</div><h3>Сырые данные (JSON)</h3></div>
+      <pre>${esc(JSON.stringify(c, null, 2))}</pre>
+      <div class="row-actions"><button class="ghost" id="dl-cmp">⬇ Скачать JSON</button></div>
+    </div>`;
+  $("dl-cmp").onclick = () => {
+    const blob = new Blob([JSON.stringify(j, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `compare-${j.my_nm_id}-vs-${j.competitor_nm_id}.json`; a.click();
+  };
+}
+
+$("btn-cmp").onclick = async () => {
+  const btn = $("btn-cmp"); btn.disabled = true;
+  const orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Загружаем мою…';
+  $("cmp-out").innerHTML = loadingBlock("Загружаем мою карточку…");
+  try {
+    // ВАЖНО: последовательно, не параллельно — иначе на бэке race condition в JSON-хранилище
+    const a = await resolveCardNmId($("cmp-mine-input").value, $("cmp-mine").value, "моей карточки");
+    btn.innerHTML = '<span class="spin"></span> Загружаем конкурента…';
+    $("cmp-out").innerHTML = loadingBlock("Загружаем карточку конкурента…");
+    const b = await resolveCardNmId($("cmp-comp-input").value, $("cmp-comp").value, "конкурента");
+    if (a === b) throw new Error("Карточки должны отличаться");
+    $("cmp-mine").value = a; $("cmp-comp").value = b;
+    $("cmp-mine-input").value = ""; $("cmp-comp-input").value = "";
+    btn.innerHTML = '<span class="spin"></span> Сравниваем…';
+    $("cmp-out").innerHTML = loadingBlock("Claude сравнивает характеристики, цены и отзывы…");
+    const j = await api("POST", "/api/wb/compare", { my_nm_id: a, competitor_nm_id: b });
+    renderCompare(j);
+  } catch (e) {
+    $("cmp-out").innerHTML = errorBlock(e.message);
+  } finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+// ─── Block 4: snapshots + period compare ────────────────────────────────────
+let SNAPSHOTS = [];
+let currentSnapNm = "";
+
+function syncSnapCardSelect() {
+  const opts = CARDS.map((c) => `<option value="${c.nm_id}">${c.nm_id} — ${esc((c.name || "").slice(0, 60))}</option>`).join("");
+  const prev = $("snap-nm").value;
+  $("snap-nm").innerHTML = `<option value="">— выбери карточку —</option>${opts}`;
+  if (prev && CARDS.some((c) => String(c.nm_id) === String(prev))) $("snap-nm").value = prev;
+}
+
+async function loadSnapshots(nmId) {
+  currentSnapNm = String(nmId || "");
+  if (!currentSnapNm) {
+    SNAPSHOTS = [];
+    $("snap-list").innerHTML = '<div class="empty">Выбери карточку выше, чтобы видеть её снимки.</div>';
+    $("period-before").innerHTML = '<option value="">—</option>';
+    $("period-after").innerHTML = '<option value="">—</option>';
+    return;
+  }
+  try {
+    const j = await api("GET", "/api/wb/snapshots/" + encodeURIComponent(currentSnapNm));
+    SNAPSHOTS = j.snapshots || [];
+    renderSnapList();
+  } catch (e) { toast(e.message, "err"); }
+}
+
+function ratingDeltaBadge(d) {
+  if (d == null || isNaN(d)) return "";
+  const n = Number(d);
+  if (n > 0) return `<span class="badge green">+${n.toFixed(2)}</span>`;
+  if (n < 0) return `<span class="badge red">${n.toFixed(2)}</span>`;
+  return `<span class="badge gray">±0</span>`;
+}
+
+function renderSnapList() {
+  const wrap = $("snap-list");
+  if (!SNAPSHOTS.length) {
+    wrap.innerHTML = '<div class="empty">Ни одного снимка для этой карточки. Нажми «📸 Сделать снимок» — зафиксируем текущее состояние.</div>';
+  } else {
+    const rows = SNAPSHOTS.map((s, idx) => {
+      const prev = SNAPSHOTS[idx + 1];
+      const delta = prev ? Number(s.rating || 0) - Number(prev.rating || 0) : null;
+      return `<tr>
+        <td><b>${esc(s.label || "(без метки)")}</b><div style="color:var(--t3);font-size:11px;margin-top:2px">${new Date(s.taken_at).toLocaleString("ru-RU")}</div></td>
+        <td class="num">${s.rating || "—"} ${delta != null ? ratingDeltaBadge(delta) : ""}</td>
+        <td class="num">${s.feedbacks || 0}</td>
+        <td class="num">${s.price ? Number(s.price).toLocaleString("ru") + " ₽" : "—"}</td>
+        <td class="num">${s.reviews_sampled || 0}</td>
+        <td><button class="danger icon" data-snap-del="${s.snapshot_id}" title="Удалить снимок">✕</button></td>
+      </tr>`;
+    }).join("");
+    wrap.innerHTML = `
+      <div class="out-block" style="margin:0">
+        <div class="out-block-head"><div class="bico">🗓</div><h3>Снимки для этой карточки</h3><span class="hint">${SNAPSHOTS.length} шт. (от новых к старым)</span></div>
+        <table class="zebra"><thead><tr><th>Метка / дата</th><th>Рейтинг</th><th>Отзывов</th><th>Цена</th><th>В выборке</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>`;
+  }
+
+  const opts = SNAPSHOTS.map((s) => `<option value="${s.snapshot_id}">${esc(s.label || "(без метки)")} · ${new Date(s.taken_at).toLocaleDateString("ru-RU")} · ★${s.rating || "—"}</option>`).join("");
+  if (SNAPSHOTS.length >= 2) {
+    $("period-before").innerHTML = `<option value="">— выбери —</option>${opts}`;
+    $("period-after").innerHTML = `<option value="">— выбери —</option>${opts}`;
+    $("period-before").value = SNAPSHOTS[SNAPSHOTS.length - 1].snapshot_id;
+    $("period-after").value = SNAPSHOTS[0].snapshot_id;
+  } else {
+    $("period-before").innerHTML = `<option value="">${SNAPSHOTS.length ? "— нужно минимум 2 снимка —" : "— нет снимков —"}</option>`;
+    $("period-after").innerHTML = `<option value="">${SNAPSHOTS.length ? "— нужно минимум 2 снимка —" : "— нет снимков —"}</option>`;
+  }
+}
+
+$("snap-nm").addEventListener("change", (e) => loadSnapshots(e.target.value));
+
+document.addEventListener("click", async (e) => {
+  const delBtn = e.target.closest("button[data-snap-del]");
+  if (!delBtn) return;
+  if (!delBtn.dataset.confirm) {
+    delBtn.dataset.confirm = "1";
+    const orig = delBtn.innerHTML; delBtn.innerHTML = "✓ точно?";
+    delBtn.style.background = "var(--red-soft)";
+    if (window.MX?.pulseConfirm) window.MX.pulseConfirm(delBtn);
+    setTimeout(() => { delete delBtn.dataset.confirm; delBtn.innerHTML = orig; delBtn.style.background = ""; }, 3500);
+    return;
+  }
+  delete delBtn.dataset.confirm; delBtn.style.background = "";
+  try {
+    await api("DELETE", `/api/wb/snapshots/${encodeURIComponent(currentSnapNm)}/${delBtn.dataset.snapDel}`);
+    await loadSnapshots(currentSnapNm);
+  } catch (er) { toast(er.message, "err"); }
+});
+
+$("btn-snap").onclick = async () => {
+  const nm = $("snap-nm").value;
+  if (!nm) return toast("Выбери карточку", "err");
+  const label = $("snap-label").value.trim();
+  if (!label) return toast("Введи метку снимка (например «До доработки»)", "err");
+  const btn = $("btn-snap"); btn.disabled = true;
+  const orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Снимаем…';
+  try {
+    await api("POST", "/api/wb/snapshot", {
+      nm_id: nm,
+      label,
+      notes: $("snap-notes").value.trim() || "",
+      reviews_keep: 200,
+    });
+    toast(`Снимок «${label}» создан`);
+    $("snap-label").value = ""; $("snap-notes").value = "";
+    await loadSnapshots(nm);
+  } catch (e) { toast(e.message, "err"); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+function trendBadge(t) {
+  if (t === "up") return `<span class="badge green">↑ рост</span>`;
+  if (t === "down") return `<span class="badge red">↓ падение</span>`;
+  return `<span class="badge gray">→ без изменений</span>`;
+}
+
+function priorityBadge(p) {
+  if (p === "high") return `<span class="badge red">${p}</span>`;
+  if (p === "medium") return `<span class="badge orange">${p}</span>`;
+  if (p === "low") return `<span class="badge green">${p}</span>`;
+  return `<span class="badge gray">${esc(p || "—")}</span>`;
+}
+
+function verdictBadge(v) {
+  if (v === "успех") return `<span class="badge green">✓ ${v}</span>`;
+  if (v === "частичный успех") return `<span class="badge orange">~ ${v}</span>`;
+  if (v === "регресс") return `<span class="badge red">↓ ${v}</span>`;
+  return `<span class="badge gray">${esc(v || "—")}</span>`;
+}
+
+function renderPeriodCompare(j) {
+  const c = j.comparison || {};
+  const m = c.metrics_diff || {};
+  const out = $("period-out");
+  const better = (c.what_got_better || []).map((x) => `<tr><td><b>${esc(x.theme)}</b></td><td>${esc(x.before)}</td><td>${esc(x.after)}</td><td>${esc(x.evidence || "")}</td></tr>`).join("");
+  const worse = (c.what_got_worse || []).map((x) => `<tr><td><b>${esc(x.theme)}</b></td><td>${esc(x.before)}</td><td>${esc(x.after)}</td><td>${esc(x.hypothesis || "")}</td></tr>`).join("");
+  const newIssues = (c.new_issues_emerged || []).map((x) => `<tr><td><b>${esc(x.issue)}</b></td><td>${esc(x.frequency || "")}</td><td>${sevBadge(x.severity)}</td><td>${esc(x.evidence || "")}</td></tr>`).join("");
+  const resolved = (c.resolved_issues || []).map((x) => `<li><b>${esc(x.issue)}.</b> ${esc(x.evidence || "")}</li>`).join("") || "<li>—</li>";
+  const next = (c.next_actions || []).map((x) => `<tr><td><b>${esc(x.action)}</b></td><td>${esc(x.why)}</td><td>${esc(x.expected_effect || "")}</td><td>${priorityBadge(x.priority)}</td></tr>`).join("");
+
+  out.innerHTML = `
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">🎯</div><h3>Итог сравнения</h3><span class="hint">«${esc(j.before.label || "до")}» → «${esc(j.after.label || "после")}»</span></div>
+      <div class="out-summary">${esc(c.summary || "—")} ${verdictBadge(c.verdict)}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--blue-soft);color:var(--blue)">📊</div><h3>Метрики до/после</h3></div>
+      <div class="stats">
+        <div class="stat"><div class="l">Рейтинг</div><div class="v">${(m.rating?.before || 0)} → <span style="color:var(--blue)">${(m.rating?.after || 0)}</span></div><div class="d">${ratingDeltaBadge(m.rating?.delta)} ${trendBadge(m.rating?.trend)}</div></div>
+        <div class="stat"><div class="l">Всего отзывов</div><div class="v">${(m.feedbacks_total?.before || 0)} → <span style="color:var(--blue)">${(m.feedbacks_total?.after || 0)}</span></div><div class="d">${m.feedbacks_total?.delta > 0 ? "+" + m.feedbacks_total.delta : (m.feedbacks_total?.delta || 0)} · ${trendBadge(m.feedbacks_total?.trend)}</div></div>
+        <div class="stat"><div class="l">Цена</div><div class="v">${(m.price?.before || 0).toLocaleString("ru")} → <span style="color:var(--blue)">${(m.price?.after || 0).toLocaleString("ru")}</span> ₽</div><div class="d">${trendBadge(m.price?.trend)}</div></div>
+      </div>
+      <div style="color:var(--t2);font-size:13px;line-height:1.6;margin-top:6px">${esc(c.rating_explanation || "")}</div>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--green-soft);color:var(--green)">⬆️</div><h3>Что улучшилось</h3></div>
+      <table class="zebra"><thead><tr><th>Тема</th><th>Было</th><th>Стало</th><th>Подтверждение</th></tr></thead><tbody>${better || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--red-soft);color:var(--red)">⬇️</div><h3>Что ухудшилось</h3></div>
+      <table class="zebra"><thead><tr><th>Тема</th><th>Было</th><th>Стало</th><th>Гипотеза причины</th></tr></thead><tbody>${worse || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--red-soft);color:var(--red)">🆕</div><h3>Новые проблемы, которых раньше не было</h3></div>
+      <table class="zebra"><thead><tr><th>Проблема</th><th>Частота</th><th>Severity</th><th>Подтверждение</th></tr></thead><tbody>${newIssues || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--green-soft);color:var(--green)">✅</div><h3>Проблемы, которые удалось закрыть</h3></div>
+      <ul class="list green">${resolved}</ul>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico" style="background:var(--purple-soft);color:var(--purple)">🚀</div><h3>Что сделать дальше</h3></div>
+      <table class="zebra"><thead><tr><th>Действие</th><th>Зачем</th><th>Эффект</th><th>Приоритет</th></tr></thead><tbody>${next || '<tr><td colspan="4" style="color:var(--t3)">—</td></tr>'}</tbody></table>
+    </div>
+
+    <div class="out-block">
+      <div class="out-block-head"><div class="bico">📄</div><h3>Сырые данные</h3></div>
+      <pre>${esc(JSON.stringify(c, null, 2))}</pre>
+      <div class="row-actions"><button class="ghost" id="dl-period">⬇ Скачать JSON</button></div>
+    </div>`;
+  $("dl-period").onclick = () => {
+    const blob = new Blob([JSON.stringify(j, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `period-${j.nm_id}-${j.before.snapshot_id.slice(0,8)}-vs-${j.after.snapshot_id.slice(0,8)}.json`; a.click();
+  };
+}
+
+$("btn-period").onclick = async () => {
+  if (!currentSnapNm) return toast("Сначала выбери карточку выше", "err");
+  const before = $("period-before").value;
+  const after = $("period-after").value;
+  if (!before || !after) return toast("Выбери оба снимка", "err");
+  if (before === after) return toast("Снимки должны различаться", "err");
+  const btn = $("btn-period"); btn.disabled = true;
+  const orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Сравниваем периоды…';
+  $("period-out").innerHTML = loadingBlock("Claude сравнивает снимки до и после…");
+  try {
+    const j = await api("POST", "/api/wb/period-compare", {
+      nm_id: currentSnapNm,
+      before_id: before,
+      after_id: after,
+      change_notes: $("period-notes").value.trim() || "",
+    });
+    renderPeriodCompare(j);
+  } catch (e) {
+    $("period-out").innerHTML = errorBlock(e.message);
+  } finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+// ─── Block 5: WB Seller отзывы и вопросы ────────────────────────────────────
+let WBS_REVIEWS = [], WBS_QUESTIONS = [];
+let WBS_REV_FILTER = "pending", WBS_Q_FILTER = "pending";
+
+function setWbsRevFilter(f) { WBS_REV_FILTER = f; updateWbsFilterBtns(); renderWbsLists(); }
+function setWbsQFilter(f) { WBS_Q_FILTER = f; updateWbsFilterBtns(); renderWbsLists(); }
+function updateWbsFilterBtns() {
+  document.querySelectorAll('[data-wbs-rev-f]').forEach(b => {
+    const on = b.dataset.wbsRevF === WBS_REV_FILTER;
+    b.style.background = on ? "var(--primary)" : "transparent";
+    b.style.color = on ? "#fff" : "var(--t1)";
+    b.style.borderColor = on ? "var(--primary)" : "var(--line)";
+  });
+  document.querySelectorAll('[data-wbs-q-f]').forEach(b => {
+    const on = b.dataset.wbsQF === WBS_Q_FILTER;
+    b.style.background = on ? "var(--primary)" : "transparent";
+    b.style.color = on ? "#fff" : "var(--t1)";
+    b.style.borderColor = on ? "var(--primary)" : "var(--line)";
+  });
+}
+
+let WBS_BAN_INTERVAL = null;
+async function checkWbKeyStatus() {
+  try {
+    const s = await api("GET", "/api/settings");
+    const chip = $("wbs-status");
+    if (!s.wb_api_key_set) {
+      chip.textContent = "не настроен WB ключ — открой Settings";
+      chip.style.color = "var(--orange)";
+      return;
+    }
+    chip.textContent = `WB ключ ✓ (${s.wb_api_key_hint}) · тон: ${s.ai_tone_preset || "friendly"}`;
+    chip.style.color = "var(--green)";
+    const st = await api("GET", "/api/wb-seller/status");
+    renderWbsBanBanner(st.wb_ban_sec || 0);
+  } catch {}
+}
+
+function renderWbsBanBanner(initialSec) {
+  const wrap = $("wbs-ban-banner");
+  const syncRev = $("btn-wbs-sync-rev"), syncQ = $("btn-wbs-sync-q");
+  if (WBS_BAN_INTERVAL) { clearInterval(WBS_BAN_INTERVAL); WBS_BAN_INTERVAL = null; }
+  if (!initialSec || initialSec <= 0) {
+    wrap.style.display = "none"; wrap.innerHTML = "";
+    if (syncRev) { syncRev.disabled = false; if (syncRev.dataset.origLabel) syncRev.innerHTML = syncRev.dataset.origLabel; }
+    if (syncQ) { syncQ.disabled = false; if (syncQ.dataset.origLabel) syncQ.innerHTML = syncQ.dataset.origLabel; }
+    return;
+  }
+  let left = initialSec;
+  const render = () => {
+    const min = Math.floor(left / 60), sec = left % 60;
+    wrap.style.display = "block";
+    wrap.innerHTML = `<div style="padding:14px 16px;background:rgba(255,69,58,.10);border:1px solid rgba(255,69,58,.32);border-left:4px solid var(--red);border-radius:12px;color:#ffd2cf;font-size:13.5px;line-height:1.55">
+      <div style="font-weight:700;font-size:14px;color:var(--red);margin-bottom:4px">⛔ WB API заблокирован на ${min}:${sec.toString().padStart(2,"0")}</div>
+      <div>Wildberries сам ограничил твой токен из-за частых запросов. Это не наша блокировка — мы просто перестаём дёргать WB пока бан активен, чтобы не продлевать его.</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--t2)">Подожди обратный отсчёт ниже. Сервис проверяет статус каждую секунду — кнопки откроются автоматически когда WB снимет бан.</div>
+      <div style="margin-top:10px"><button class="ghost" onclick="manualClearBan()" style="font-size:11px;padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--t2);border-radius:6px;cursor:pointer">Я уверен, WB уже разблокировал — сбросить локальный таймер</button></div>
+    </div>`;
+    if (syncRev) { syncRev.disabled = true; syncRev.dataset.origLabel = syncRev.dataset.origLabel || "📥 Загрузить отзывы"; syncRev.innerHTML = `⛔ ${min}:${sec.toString().padStart(2,"0")}`; }
+    if (syncQ) { syncQ.disabled = true; syncQ.dataset.origLabel = syncQ.dataset.origLabel || "📥 Загрузить вопросы"; syncQ.innerHTML = `⛔ ${min}:${sec.toString().padStart(2,"0")}`; }
+  };
+  render();
+  WBS_BAN_INTERVAL = setInterval(() => {
+    left -= 1;
+    if (left <= 0) { clearInterval(WBS_BAN_INTERVAL); WBS_BAN_INTERVAL = null; renderWbsBanBanner(0); checkWbKeyStatus(); return; }
+    render();
+  }, 1000);
+}
+
+async function manualClearBan() {
+  try {
+    await api("POST", "/api/wb-seller/clear-ban", {});
+    toast("Локальный таймер сброшен. Жми «Загрузить» — но если WB всё ещё держит бан, опять прилетит 429.");
+    checkWbKeyStatus();
+  } catch (e) { toast(e.message, "err"); }
+}
+
+function statusBadge(s) {
+  if (s === "ready" || s === "ready" /* questions use status_ai but same value */) return `<span class="badge">готов</span>`;
+  if (s === "pending") return `<span class="badge orange">черновик</span>`;
+  if (s === "posted") return `<span class="badge green">✓ опубликован</span>`;
+  return `<span class="badge gray">${esc(s || "—")}</span>`;
+}
+
+function renderWbsItem(item, kind) {
+  const isReview = kind === "review";
+  const id = isReview ? item.review_id : item.question_id;
+  const status = isReview ? item.status : item.status_ai;
+  const ratingHtml = isReview && item.rating ? `<span class="badge ${item.rating>=4?"green":item.rating>=3?"orange":"red"}">★ ${item.rating}</span>` : "";
+  const productLine = item.product?.name ? `<div style="font-size:11px;color:var(--t3);margin-top:4px">${esc(item.product.brand || "")} · ${esc(item.product.name || "")} · nm ${item.product.nm_id || "—"}</div>` : "";
+  const reviewBody = isReview
+    ? [item.text, item.pros ? `<div style="margin-top:4px"><b>Плюсы:</b> ${esc(item.pros)}</div>` : "", item.cons ? `<div style="margin-top:4px"><b>Минусы:</b> ${esc(item.cons)}</div>` : ""].filter(Boolean).join("")
+    : `<div>${esc(item.text)}</div>`;
+  const respText = item.ai_response || "";
+  return `<div class="out-block" style="padding:14px;margin:0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${ratingHtml}
+        ${statusBadge(status)}
+        <span style="color:var(--t3);font-size:11px">${item.created_at ? new Date(item.created_at).toLocaleString("ru-RU") : ""}</span>
+        ${item.user_name ? `<span style="color:var(--t3);font-size:11px">· ${esc(item.user_name)}</span>` : ""}
+      </div>
+      <div style="font-size:10px;color:var(--t3);font-family:SF Mono,Menlo,monospace">${esc(id)}</div>
+    </div>
+    <div style="font-size:13px;line-height:1.55">${reviewBody}</div>
+    ${productLine}
+    <div style="margin-top:10px">
+      <textarea data-wbs-ai="${esc(id)}" data-kind="${kind}" placeholder="${respText ? "" : "AI-ответ появится здесь после генерации…"}" style="min-height:68px">${esc(respText)}</textarea>
+    </div>
+    <div id="wbs-preview-${esc(id)}"></div>
+    <div class="row-actions" style="margin-top:8px;flex-wrap:wrap">
+      <button class="ghost icon" data-wbs-preview="${esc(id)}" data-kind="${kind}" title="Сгенерировать AI-ответ для теста, БЕЗ публикации. Безопасно для архивных отзывов.">🧪 Сравнить с AI</button>
+      <button class="ghost icon" data-wbs-gen="${esc(id)}" data-kind="${kind}">🤖 Сгенерировать AI</button>
+      <button class="ghost icon" data-wbs-save="${esc(id)}" data-kind="${kind}">💾 Сохранить текст</button>
+      <button class="primary" data-wbs-post="${esc(id)}" data-kind="${kind}" style="margin-left:auto" ${status === "posted" ? "disabled" : ""} ${status === "posted" ? `title="Уже опубликован — повторный ответ через API невозможен"` : ""}>📤 Опубликовать в WB</button>
+    </div>
+  </div>`;
+}
+
+function filterWbs(list, kind, filter) {
+  const key = kind === "review" ? "status" : "status_ai";
+  if (filter === "all") return list;
+  return list.filter((x) => x[key] === filter);
+}
+
+function renderWbsLists() {
+  updateWbsFilterBtns();
+  const revs = filterWbs(WBS_REVIEWS, "review", WBS_REV_FILTER);
+  const qs = filterWbs(WBS_QUESTIONS, "question", WBS_Q_FILTER);
+  const revTitle = $("wbs-rev-title"); if (revTitle) revTitle.textContent = `Отзывы · ${revs.length} из ${WBS_REVIEWS.length} в кэше`;
+  const qTitle = $("wbs-q-title"); if (qTitle) qTitle.textContent = `Вопросы · ${qs.length} из ${WBS_QUESTIONS.length} в кэше`;
+  $("wbs-rev-list").innerHTML = revs.length
+    ? `<div style="display:flex;flex-direction:column;gap:10px">${revs.map((x) => renderWbsItem(x, "review")).join("")}</div>`
+    : `<div class="empty">${WBS_REVIEWS.length ? "По фильтру ничего нет." : 'Список пуст. Нажми «📥 Загрузить отзывы» — подтянем с WB.'}</div>`;
+  $("wbs-q-list").innerHTML = qs.length
+    ? `<div style="display:flex;flex-direction:column;gap:10px">${qs.map((x) => renderWbsItem(x, "question")).join("")}</div>`
+    : `<div class="empty">${WBS_QUESTIONS.length ? "По фильтру ничего нет." : 'Список пуст. Нажми «📥 Загрузить вопросы».'}</div>`;
+}
+
+async function loadWbsLists() {
+  try {
+    const [r, q] = await Promise.all([api("GET", "/api/wb-seller/reviews"), api("GET", "/api/wb-seller/questions")]);
+    WBS_REVIEWS = r.reviews || [];
+    WBS_QUESTIONS = q.questions || [];
+    renderWbsLists();
+  } catch (e) { toast(e.message, "err"); }
+}
+
+function startWbsCooldown(btn, sec, label) {
+  let left = sec;
+  btn.disabled = true;
+  const orig = btn.dataset.origLabel || label;
+  btn.dataset.origLabel = orig;
+  btn.innerHTML = `⏳ Подождите ${left} сек`;
+  const tick = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      clearInterval(tick);
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    } else {
+      btn.innerHTML = `⏳ Подождите ${left} сек`;
+    }
+  }, 1000);
+}
+
+async function syncWbs(kind, btnId, label) {
+  const btn = $(btnId); btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.dataset.origLabel = label;
+  btn.innerHTML = '<span class="spin"></span> Загружаем…';
+  try {
+    const includeAnswered = !!$("wbs-include-answered")?.checked;
+    const r = await fetch("/api/wb-seller/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + TOKEN },
+      body: JSON.stringify({ type: kind === "rev" ? "reviews" : "questions", include_answered: includeAnswered }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 429 || j?.retry_after) {
+      const sec = j.retry_after || 30;
+      toast(j.error || `Слишком частые запросы WB. Подождите ${sec} сек.`, "err");
+      btn.innerHTML = orig;
+      // Если это бан со стороны WB (>60 сек) — показываем глобальный баннер вместо локального cooldown
+      if (sec > 60) renderWbsBanBanner(sec);
+      else startWbsCooldown(btn, sec, label);
+      return;
+    }
+    if (!r.ok || j.ok === false) throw new Error(j.error || `HTTP ${r.status}`);
+    if (kind === "rev") toast(`Отзывы WB: новых ${j.feedbacks?.added ?? 0}, всего ${j.feedbacks?.total_local ?? 0}`);
+    else toast(`Вопросы WB: новых ${j.questions?.added ?? 0}, всего ${j.questions?.total_local ?? 0}`);
+    await loadWbsLists();
+    btn.innerHTML = orig;
+    // мягкий cooldown 30 сек чтобы не упереться в лимит снова
+    startWbsCooldown(btn, 30, label);
+  } catch (e) {
+    toast(e.message, "err");
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+$("btn-wbs-sync-rev").onclick = () => syncWbs("rev", "btn-wbs-sync-rev", "📥 Загрузить отзывы");
+$("btn-wbs-sync-q").onclick = () => syncWbs("q", "btn-wbs-sync-q", "📥 Загрузить вопросы");
+
+$("btn-wbs-probe").onclick = async () => {
+  const btn = $("btn-wbs-probe"); btn.disabled = true;
+  const orig = btn.innerHTML; btn.innerHTML = '<span class="spin"></span> Проверяем…';
+  try {
+    const r = await fetch("/api/wb-seller/probe", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + TOKEN } });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 429 || j?.retry_after) {
+      const sec = j.retry_after || 60;
+      toast(j.error || `WB ещё в бане ${Math.ceil(sec/60)} мин.`, "err");
+      renderWbsBanBanner(sec);
+      return;
+    }
+    if (!r.ok || j.ok === false) throw new Error(j.error || `HTTP ${r.status}`);
+    toast(`✓ Доступ есть! Без ответа: ${j.unanswered_total ?? "?"}, в архиве: ${j.archive_total ?? "?"}. Теперь можешь жать «📥 Загрузить отзывы».`);
+    renderWbsBanBanner(0);
+  } catch (e) { toast(e.message, "err"); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+};
+
+$("btn-wbs-refresh").onclick = loadWbsLists;
+
+document.addEventListener("click", async (e) => {
+  const preview = e.target.closest("[data-wbs-preview]");
+  const gen = e.target.closest("[data-wbs-gen]");
+  const save = e.target.closest("[data-wbs-save]");
+  const post = e.target.closest("[data-wbs-post]");
+  if (preview) {
+    const id = preview.dataset.wbsPreview; const kind = preview.dataset.kind;
+    const box = document.getElementById("wbs-preview-" + id);
+    preview.disabled = true; const orig = preview.innerHTML; preview.innerHTML = '<span class="spin"></span> AI пишет…';
+    if (box) box.innerHTML = '<div style="padding:10px;color:var(--t3);font-size:12px">⏳ Claude генерирует ответ…</div>';
+    try {
+      const path = kind === "review" ? `/api/wb-seller/reviews/${encodeURIComponent(id)}/preview-ai` : `/api/wb-seller/questions/${encodeURIComponent(id)}/preview-ai`;
+      const j = await api("POST", path, {});
+      if (!box) return;
+      box.innerHTML = `<div style="margin-top:10px;padding:12px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px">🧪 Сравнение · ${esc(j.provider || "")} / ${esc(j.model || "")}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--t3);margin-bottom:4px">ВАШ РЕАЛЬНЫЙ ОТВЕТ</div>
+            <div style="font-size:12.5px;line-height:1.55;color:var(--t1);background:var(--panel-3);padding:10px;border-radius:8px;min-height:60px;white-space:pre-wrap">${esc(j.existing_answer || "(нет — отзыв без ответа)")}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--primary);margin-bottom:4px">ОТВЕТ AI</div>
+            <div style="font-size:12.5px;line-height:1.55;color:var(--t1);background:rgba(41,151,255,.10);padding:10px;border-radius:8px;min-height:60px;border-left:3px solid var(--primary);white-space:pre-wrap">${esc(j.ai_answer || "(пусто)")}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="ghost icon" onclick="navigator.clipboard?.writeText(${JSON.stringify(j.ai_answer || "").replace(/"/g, '&quot;')});this.innerHTML='✓ Скопирован';setTimeout(()=>{this.innerHTML='📋 Копировать AI'},1500)">📋 Копировать AI</button>
+          <button class="ghost icon" onclick="this.closest('[id^=wbs-preview-]').innerHTML=''">✕ Закрыть</button>
+          <span style="margin-left:auto;font-size:11px;color:var(--t3)">${j.sentiment ? "Тональность: " + j.sentiment : ""}</span>
+        </div>
+      </div>`;
+    } catch (er) {
+      if (box) box.innerHTML = `<div style="margin-top:10px;padding:10px;background:rgba(255,69,58,.08);border:1px solid rgba(255,69,58,.3);border-radius:8px;color:#ffd2cf;font-size:12px">❌ ${esc(er.message)}</div>`;
+    }
+    preview.disabled = false; preview.innerHTML = orig;
+    return;
+  }
+  if (gen) {
+    const id = gen.dataset.wbsGen; const kind = gen.dataset.kind;
+    const orig = gen.innerHTML; gen.disabled = true; gen.innerHTML = '<span class="spin"></span> Claude…';
+    try {
+      const path = kind === "review" ? `/api/wb-seller/reviews/${encodeURIComponent(id)}/generate` : `/api/wb-seller/questions/${encodeURIComponent(id)}/generate`;
+      const j = await api("POST", path, {});
+      const ta = document.querySelector(`textarea[data-wbs-ai="${CSS.escape(id)}"]`);
+      if (ta) ta.value = j.ai_response || "";
+      toast("AI-ответ сгенерирован");
+      await loadWbsLists();
+    } catch (er) { toast(er.message, "err"); }
+    finally { gen.disabled = false; gen.innerHTML = orig; }
+  }
+  if (save) {
+    const id = save.dataset.wbsSave; const kind = save.dataset.kind;
+    const ta = document.querySelector(`textarea[data-wbs-ai="${CSS.escape(id)}"]`);
+    if (!ta) return;
+    save.disabled = true;
+    try {
+      const path = kind === "review" ? `/api/wb-seller/reviews/${encodeURIComponent(id)}` : `/api/wb-seller/questions/${encodeURIComponent(id)}`;
+      await api("PATCH", path, { ai_response: ta.value });
+      toast("Текст сохранён");
+      await loadWbsLists();
+    } catch (er) { toast(er.message, "err"); }
+    finally { save.disabled = false; }
+  }
+  if (post) {
+    const id = post.dataset.wbsPost; const kind = post.dataset.kind;
+    const ta = document.querySelector(`textarea[data-wbs-ai="${CSS.escape(id)}"]`);
+    const text = ta ? ta.value.trim() : "";
+    if (!text) return toast("Сначала сгенерируй или впиши текст ответа", "err");
+    if (!post.dataset.confirm) {
+      post.dataset.confirm = "1";
+      const orig = post.innerHTML; post.innerHTML = "Точно отправить? ✓";
+      post.style.background = "var(--orange)"; post.style.borderColor = "var(--orange)";
+      if (window.MX?.pulseConfirm) window.MX.pulseConfirm(post);
+      setTimeout(() => { delete post.dataset.confirm; post.innerHTML = orig; post.style.background = ""; post.style.borderColor = ""; }, 4000);
+      return;
+    }
+    delete post.dataset.confirm; post.style.background = ""; post.style.borderColor = "";
+    const orig = post.innerHTML; post.disabled = true; post.innerHTML = '<span class="spin"></span> Отправляем…';
+    try {
+      const path = kind === "review" ? `/api/wb-seller/reviews/${encodeURIComponent(id)}/post` : `/api/wb-seller/questions/${encodeURIComponent(id)}/post`;
+      await api("POST", path, { text });
+      toast("Опубликовано в WB ✓");
+      await loadWbsLists();
+    } catch (er) { toast(er.message, "err"); post.disabled = false; post.innerHTML = orig; }
+  }
+});
+
+loadCards().then(() => { syncSnapCardSelect(); loadSnapshots(""); });
+checkWbKeyStatus();
+loadWbsLists();
+</script>
+</body>
+</html>
