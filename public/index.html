@@ -1070,12 +1070,19 @@ select:not(.rs):focus {
       <div class="glass gp">
         <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.55px;margin-bottom:14px">🟣 Wildberries Seller API</div>
         <div class="mb3"><label class="fl">WB API Key <span id="wkh" style="color:var(--green);font-weight:700"></span></label><input type="password" id="wk" placeholder="Введите токен из ЛК WB →  Доступ к API"></div>
+        <div class="srow" title="Тестовая среда WB. Отдельный токен (создаётся в WB sandbox), фейковые отзывы. Можно дёргать без банов.">
+          <div>
+            <div style="font-size:13px;font-weight:600">🧪 Sandbox-режим</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px">feedbacks-api-sandbox.wildberries.ru — без банов prod-токена</div>
+          </div>
+          <label class="tgl"><input type="checkbox" id="iws"><span class="tgl-sl"></span></label>
+        </div>
         <div class="flex mb3">
           <button class="btn btn-blue" onclick="saveS()" style="flex:1">Сохранить</button>
           <button class="btn btn-ghost" onclick="testW()">Тест</button>
         </div>
         <div id="test-w"></div>
-        <div class="tip tip-b">Где взять: WB Seller → Профиль → Настройки → Доступ к API. Нужно «Отзывы и вопросы».</div>
+        <div class="tip tip-b">Где взять prod-токен: WB Seller → Профиль → Настройки → Доступ к API. Нужно «Отзывы и вопросы». Sandbox-токен — отдельный, в режиме разработчика.</div>
       </div>
 
       <div class="glass gp" style="grid-column:1/-1">
@@ -1282,6 +1289,7 @@ async function loadS(){
     const ia=$("ia");if(ia)ia.checked=!!s.auto_post;
     const kh=$("kh");if(kh)kh.textContent=s.ozon_api_key_set?`✓ (${s.ozon_api_key_hint})`:"";
     const wkh=$("wkh");if(wkh)wkh.textContent=s.wb_api_key_set?`✓ (${s.wb_api_key_hint})`:"";
+    const iws=$("iws");if(iws)iws.checked=!!s.wb_use_sandbox;
     const orkh=$("orkh");if(orkh)orkh.textContent=s.openrouter_api_key_set?`✓ (${s.openrouter_api_key_hint})`:"";
     await loadTones(s.ai_tone_preset||"friendly", s.ai_tone_custom||"");
     await loadAiModels(s.ai_provider||"anthropic", s.ai_model||"");
@@ -2036,6 +2044,7 @@ async function saveS(){
   const body={ozon_client_id:$("ic").value,auto_post:String($("ia").checked),cron_interval:$("icr").value};
   const key=$("ik").value;if(key)body.ozon_api_key=key;
   const wk=$("wk")?.value;if(wk)body.wb_api_key=wk;
+  if($("iws"))body.wb_use_sandbox=$("iws").checked;
   const ork=$("ork")?.value;if(ork)body.openrouter_api_key=ork;
   const prov=document.querySelector('input[name="aiprov"]:checked');
   if(prov)body.ai_provider=prov.value;

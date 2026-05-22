@@ -856,7 +856,17 @@ async function ensureWbCard(uid, input, { force = false, maxReviews = 300 } = {}
 }
 
 // ─── Wildberries Seller API (приватные эндпоинты, требуют токен продавца) ───
-const WB_SELLER_BASE = "https://feedbacks-api.wildberries.ru";
+// Production: https://feedbacks-api.wildberries.ru — реальные отзывы продавца, строгие лимиты
+// Sandbox:    https://feedbacks-api-sandbox.wildberries.ru — тестовая среда WB, отдельный токен,
+//             фейковые отзывы/вопросы. Можно дёргать без банов — для разработки и тестов.
+//
+// Переключение per-user: ставь `user.wb_use_sandbox = true` в data/users.json или через UI
+const WB_SELLER_BASE_PROD = "https://feedbacks-api.wildberries.ru";
+const WB_SELLER_BASE_SANDBOX = "https://feedbacks-api-sandbox.wildberries.ru";
+function wbSellerBase(user) {
+  return (user && user.wb_use_sandbox === true) ? WB_SELLER_BASE_SANDBOX : WB_SELLER_BASE_PROD;
+}
+const WB_SELLER_BASE = WB_SELLER_BASE_PROD; // legacy fallback
 
 // Persistent WB ban tracker — переживает рестарт сервера
 const WB_BAN_FILE = path.join(DATA_DIR, "wb-bans.json");
@@ -882,7 +892,7 @@ function wbBanClear(token) {
   _saveBans(bans);
 }
 
-async function wbSellerRequest(token, method, path, { params, body, _retry } = {}) {
+async function wbSellerRequest(token, method, path, { params, body, _retry, baseUrl } = {}) {
   if (!token) throw new Error("Не настроен WB API ключ");
   // Если уже в бане — сразу ошибка, не дёргаем WB
   const banLeft = wbBanRemainingSec(token);
@@ -892,7 +902,7 @@ async function wbSellerRequest(token, method, path, { params, body, _retry } = {
     err.retryAfter = banLeft;
     throw err;
   }
-  const url = new URL(WB_SELLER_BASE + path);
+  const url = new URL((baseUrl || WB_SELLER_BASE) + path);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
@@ -974,17 +984,19 @@ function normalizeWbSellerQuestion(q) {
   };
 }
 
-async function fetchWbSellerFeedbacks(token, { isAnswered = false, take = 100, skip = 0 } = {}) {
+async function fetchWbSellerFeedbacks(token, { isAnswered = false, take = 100, skip = 0, baseUrl } = {}) {
   const data = await wbSellerRequest(token, "GET", "/api/v1/feedbacks", {
     params: { isAnswered: String(isAnswered), take, skip, order: "dateDesc" },
+    baseUrl,
   });
   const arr = data?.data?.feedbacks || data?.feedbacks || [];
   return { items: arr.map(normalizeWbSellerFeedback), total: Number(data?.data?.countUnanswered || data?.data?.countArchive || arr.length) };
 }
 
-async function fetchWbSellerQuestions(token, { isAnswered = false, take = 100, skip = 0 } = {}) {
+async function fetchWbSellerQuestions(token, { isAnswered = false, take = 100, skip = 0, baseUrl } = {}) {
   const data = await wbSellerRequest(token, "GET", "/api/v1/questions", {
     params: { isAnswered: String(isAnswered), take, skip, order: "dateDesc" },
+    baseUrl,
   });
   const arr = data?.data?.questions || data?.questions || [];
   return { items: arr.map(normalizeWbSellerQuestion), total: Number(data?.data?.countUnanswered || data?.data?.countArchive || arr.length) };
@@ -1013,15 +1025,13 @@ function setUserWbQuestionsStore(uid, list) { return setUserData(uid, "wb-questi
 function getUserChatsStore(uid) { return getUserData(uid, "chats", { index: [], threads: {} }); }
 function setUserChatsStore(uid, store) { return setUserData(uid, "chats", store); }
 
-async function syncWbSellerFeedbacks(uid, token, { includeAnswered = false } = {}) {
+async function syncWbSellerFeedbacks(uid, token, { includeAnswered = false, baseUrl } = {}) {
   // ВАЖНО: WB агрессивно банит за серии запросов. Делаем ОДИН запрос с take=200.
-  // У большинства продавцов <200 неотвеченных — всё помещается. Если больше — пусть юзер
-  // делает sync второй раз позже.
-  const { items: unanswered } = await fetchWbSellerFeedbacks(token, { isAnswered: false, take: 200, skip: 0 });
+  const { items: unanswered } = await fetchWbSellerFeedbacks(token, { isAnswered: false, take: 200, skip: 0, baseUrl });
   let answered = [];
   if (includeAnswered) {
-    await new Promise((r) => setTimeout(r, 4000)); // 4 сек пауза — выдерживаем 1 req/sec с запасом
-    const res = await fetchWbSellerFeedbacks(token, { isAnswered: true, take: 200, skip: 0 });
+    await new Promise((r) => setTimeout(r, 4000));
+    const res = await fetchWbSellerFeedbacks(token, { isAnswered: true, take: 200, skip: 0, baseUrl });
     answered = res.items;
   }
   const fresh = [...unanswered, ...answered];
@@ -1046,12 +1056,12 @@ async function syncWbSellerFeedbacks(uid, token, { includeAnswered = false } = {
   return { added, total_remote: fresh.length, total_local: existing.length, unanswered: unanswered.length, answered: answered.length };
 }
 
-async function syncWbSellerQuestions(uid, token, { includeAnswered = false } = {}) {
-  const { items: unanswered } = await fetchWbSellerQuestions(token, { isAnswered: false, take: 200, skip: 0 });
+async function syncWbSellerQuestions(uid, token, { includeAnswered = false, baseUrl } = {}) {
+  const { items: unanswered } = await fetchWbSellerQuestions(token, { isAnswered: false, take: 200, skip: 0, baseUrl });
   let answered = [];
   if (includeAnswered) {
     await new Promise((r) => setTimeout(r, 4000));
-    const res = await fetchWbSellerQuestions(token, { isAnswered: true, take: 200, skip: 0 });
+    const res = await fetchWbSellerQuestions(token, { isAnswered: true, take: 200, skip: 0, baseUrl });
     answered = res.items;
   }
   const fresh = [...unanswered, ...answered];
@@ -2077,6 +2087,7 @@ function sanitizeUser(u) {
     ozon_api_key_hint: safe.ozon_api_key_hint || buildSecretHint(ozon_api_key),
     wb_api_key_set: !!(wb_api_key_encrypted || wb_api_key),
     wb_api_key_hint: safe.wb_api_key_hint || buildSecretHint(wb_api_key),
+    wb_use_sandbox: !!safe.wb_use_sandbox,
     openrouter_api_key_set: !!(openrouter_api_key_encrypted || openrouter_api_key),
     openrouter_api_key_hint: safe.openrouter_api_key_hint || buildSecretHint(openrouter_api_key),
     ai_tone_preset: safe.ai_tone_preset || DEFAULT_TONE_ID,
@@ -2658,12 +2669,12 @@ app.post("/api/wb-seller/sync", auth, async (req, res) => {
     const includeAnswered = req.body?.include_answered === true || req.body?.include_answered === "true";
     const result = {};
     if (type === "reviews" || type === "both") {
-      result.feedbacks = await syncWbSellerFeedbacks(req.user.id, key, { includeAnswered });
+      result.feedbacks = await syncWbSellerFeedbacks(req.user.id, key, { includeAnswered, baseUrl: wbSellerBase(req.user) });
       addUserLog(req.user.id, `📥 WB отзывы: +${result.feedbacks.added} новых · в кэше ${result.feedbacks.total_local}${includeAnswered?` (без ответа ${result.feedbacks.unanswered}, отвеченных ${result.feedbacks.answered})`:""}`, "success");
       if (type === "both") await new Promise((r) => setTimeout(r, 1500));
     }
     if (type === "questions" || type === "both") {
-      result.questions = await syncWbSellerQuestions(req.user.id, key, { includeAnswered });
+      result.questions = await syncWbSellerQuestions(req.user.id, key, { includeAnswered, baseUrl: wbSellerBase(req.user) });
       addUserLog(req.user.id, `📥 WB вопросы: +${result.questions.added} новых · в кэше ${result.questions.total_local}${includeAnswered?` (без ответа ${result.questions.unanswered}, отвеченных ${result.questions.answered})`:""}`, "success");
     }
     res.json({ ok: true, ...result });
@@ -2779,7 +2790,7 @@ app.post("/api/wb-seller/probe", auth, async (req, res) => {
     return res.status(429).json({ ok: false, error: `WB API ещё заблокирован на ${Math.ceil(ban/60)} мин (наш локальный таймер)`, retry_after: ban });
   }
   try {
-    const r = await wbSellerRequest(req.user.wb_api_key, "GET", "/api/v1/feedbacks", { params: { isAnswered: "false", take: 1, skip: 0, order: "dateDesc" } });
+    const r = await wbSellerRequest(req.user.wb_api_key, "GET", "/api/v1/feedbacks", { params: { isAnswered: "false", take: 1, skip: 0, order: "dateDesc" }, baseUrl: wbSellerBase(req.user) });
     const fb = r?.data?.feedbacks || r?.feedbacks || [];
     res.json({
       ok: true,
@@ -2911,7 +2922,7 @@ app.get("/api/settings", auth, (req, res) => {
 });
 
 app.post("/api/settings", auth, (req, res) => {
-  const { ozon_client_id, ozon_api_key, wb_api_key, openrouter_api_key, auto_post, cron_interval, shop_name, ai_tone_preset, ai_tone_custom, ai_provider, ai_model } = req.body;
+  const { ozon_client_id, ozon_api_key, wb_api_key, wb_use_sandbox, openrouter_api_key, auto_post, cron_interval, shop_name, ai_tone_preset, ai_tone_custom, ai_provider, ai_model } = req.body;
   const users = getUsers();
   const i = users.findIndex(u => u.id === req.user.id);
   if (i < 0) return res.status(404).json({ error: "Пользователь не найден" });
@@ -2970,6 +2981,7 @@ app.post("/api/settings", auth, (req, res) => {
     users[i].ai_tone_custom = String(ai_tone_custom || "").slice(0, 4000);
   }
   if (auto_post      !== undefined) users[i].auto_post       = auto_post === "true" || auto_post === true;
+  if (wb_use_sandbox !== undefined) users[i].wb_use_sandbox   = wb_use_sandbox === "true" || wb_use_sandbox === true;
   if (cron_interval  !== undefined) users[i].cron_interval   = cron_interval;
   if (shop_name      !== undefined) users[i].shop_name        = sanitizeNameInput(shop_name);
   saveUsers(users);
@@ -2994,7 +3006,7 @@ app.post("/api/test-wb", auth, async (req, res) => {
   const key = String(req.body?.wb_api_key || req.user.wb_api_key || "").trim();
   if (!key) return res.status(400).json({ ok: false, error: "Не указан WB API ключ" });
   try {
-    const data = await wbSellerRequest(key, "GET", "/api/v1/feedbacks", { params: { isAnswered: "false", take: 1, skip: 0, order: "dateDesc" } });
+    const data = await wbSellerRequest(key, "GET", "/api/v1/feedbacks", { params: { isAnswered: "false", take: 1, skip: 0, order: "dateDesc" }, baseUrl: wbSellerBase(req.user) });
     const total = data?.data?.countUnanswered ?? data?.data?.countArchive ?? data?.countUnanswered ?? null;
     res.json({ ok: true, sample_count: (data?.data?.feedbacks || data?.feedbacks || []).length, unanswered: total });
   } catch (e) {
