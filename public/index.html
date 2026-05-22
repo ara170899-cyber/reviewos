@@ -846,6 +846,18 @@ select:not(.rs):focus {
 
   <!-- DASHBOARD -->
   <div class="page on stagger" id="page-dash">
+    <!-- ONBOARDING BANNER (показывается если ключи не настроены) -->
+    <div id="onboarding-banner" style="display:none;margin-bottom:18px;padding:18px 20px;background:linear-gradient(135deg,rgba(41,151,255,.10),rgba(191,90,242,.06));border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:14px">
+      <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px">🎯 Начни здесь — 3 шага до автоответов</div>
+      <ol style="margin:0;padding-left:22px;font-size:13.5px;color:var(--t2);line-height:1.7">
+        <li><b style="color:var(--t1)">Settings</b> → введи Ozon Client-Id + Api-Key <span style="color:var(--t3)">(где взять: Ozon Seller → Настройки → API ключи)</span></li>
+        <li><b style="color:var(--t1)">Settings</b> → введи WB API Key <span style="color:var(--t3)">(WB Seller → Доступ к API → «Отзывы и вопросы»)</span></li>
+        <li><b style="color:var(--t1)">Settings → Тональность</b> → выбери стиль ответов, нажми «🎭 Превью» для теста</li>
+      </ol>
+      <div style="margin-top:12px;font-size:12px;color:var(--t3)">После сохранения ключей включи <b style="color:var(--orange)">«Авто-публикация»</b> в Settings — сервис сам начнёт отвечать на новые отзывы каждые 5 минут.</div>
+      <div style="margin-top:12px"><button class="rs-btn" onclick="setTab('set')">→ Открыть Settings</button></div>
+    </div>
+
     <!-- HERO -->
     <div class="rs-greet">
       <div>
@@ -1281,9 +1293,18 @@ async function loadAll(){
   }catch{updateHeader(null);}
 }
 
+function updateOnboardingBanner(){
+  const ob=$("onboarding-banner");if(!ob)return;
+  const s=settings||{};
+  // Показываем баннер если нет ни одного маркетплейсного ключа
+  const hasAny=s.ozon_api_key_set||s.wb_api_key_set;
+  ob.style.display=hasAny?"none":"block";
+}
+
 async function loadS(){
   try{
     const s=await api.get("/settings");settings=s;
+    updateOnboardingBanner();
     const ic=$("ic");if(ic&&!ic.matches(":focus"))ic.value=s.ozon_client_id||"";
     const icr=$("icr");if(icr&&!icr.matches(":focus"))icr.value=s.cron_interval||"*/5 * * * *";
     const ia=$("ia");if(ia)ia.checked=!!s.auto_post;

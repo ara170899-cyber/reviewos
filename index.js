@@ -1924,7 +1924,13 @@ async function runUserCycle(uid) {
     //   4) auto_post:true → автоматически публикует AI-ответы (с throttle 45s между публикациями)
     // Чтобы выключить — снять wb_api_key в Settings или поставить auto_post:false.
     res.wb = { synced: false, feedbacks_replied: 0, questions_replied: 0, feedbacks_posted: 0, questions_posted: 0, errors: 0 };
-    if (user.wb_api_key) {
+    // Warmup период после сохранения WB-ключа: 15 минут не дёргаем — даём токену «прогреться»
+    const warmupUntil = user.wb_warmup_until ? new Date(user.wb_warmup_until).getTime() : 0;
+    const warmupLeftMin = warmupUntil ? Math.ceil((warmupUntil - Date.now()) / 60000) : 0;
+    if (user.wb_api_key && warmupLeftMin > 0) {
+      addUserLog(uid, `⏳ WB sync пропущен: warmup ${warmupLeftMin} мин после сохранения ключа.`, "info");
+      res.wb.skipped_warmup = true;
+    } else if (user.wb_api_key) {
       // Если WB в бане — пропускаем sync целиком, чтобы не множить ошибки
       const banLeft = wbBanRemainingSec(user.wb_api_key);
       if (banLeft > 0) {
@@ -2992,9 +2998,14 @@ app.post("/api/settings", auth, (req, res) => {
       try { wbBanClear(normalizedKey); } catch {}
       users[i].wb_api_key_encrypted = encryptSecret(normalizedKey);
       users[i].wb_api_key_hint = buildSecretHint(normalizedKey);
+      // Warmup cooldown: первые 15 минут после сохранения ключа cycle не дёргает WB —
+      // даём токену «отойти» если у него уже накопились внешние лимиты, и юзеру
+      // успеть нажать «Тест» / «Проверить доступ» вручную.
+      users[i].wb_warmup_until = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     } else {
       delete users[i].wb_api_key_encrypted;
       users[i].wb_api_key_hint = "";
+      delete users[i].wb_warmup_until;
     }
     delete users[i].wb_api_key;
   }
